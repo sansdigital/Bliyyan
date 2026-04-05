@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 40" width="140" height="40">
+  <!-- Dynamic Bliyyan Logo -->
+  <g transform="translate(0, 4)">
+    <!-- Abstract B monogram -->
+    <path d="M5,2 L16,2 C22,2 26,4 26,10 C26,14 23,16 19,17 C24,18 28,21 28,27 C28,34 23,36 15,36 L5,36 Z" fill="#111111" />
+    <path d="M10,7 L15,7 C18,7 20,8 20,11 C20,14 18,15 15,15 L10,15 Z" fill="#D4AF37" />
+    <path d="M10,19 L15,19 C19,19 22,20 22,24 C22,28 19,29 15,29 L10,29 Z" fill="#D4AF37" />
+  </g>
+  <!-- Brand Text -->
+  <text x="36" y="31" font-family="-apple-system, BlinkMacSystemFont, 'Outfit', 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="28" fill="#111111" letter-spacing="-1.5">Bliyyan</text>
+</svg>
