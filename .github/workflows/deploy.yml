@@ -36,7 +36,6 @@ jobs:
           **/.git*
           **/.git*/**
           **/node_modules/**
-          **/vendor/**
           **/storage/*.key
           **/storage/*.sqlite
           **/storage/*/**
