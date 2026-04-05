@@ -33,4 +33,4 @@ This project is part of the **PiOS (Pi Open Source)** initiative. It is develope
 This application is open-sourced software licensed under the **[PiOS License](LICENSE)**.
 
 ---
-© 2026 Bliyyan. Pi, Pi Network and the Pi logo are trademarks of the Pi Community Company.
+© 2026 Bliyyan (Developer: Sans Digital). Pi, Pi Network and the Pi logo are trademarks of the Pi Community Company.
