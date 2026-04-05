@@ -31,7 +31,7 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        server-dir: /public_html/bliyyan/ # Sesuai dengan folder di hPanel Mas
+        server-dir: public_html/bliyyan/ # Tanpa tanda miring di depan biar relatif
         exclude: |
           **/.git*
           **/.git*/**
