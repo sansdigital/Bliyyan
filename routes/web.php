@@ -10,9 +10,20 @@ use App\Http\Controllers\Auth\PiAuthController;
 Route::post('/auth/pi', [PiAuthController::class, 'authenticate'])->name('pi.auth');
 
 Route::get('/fix-storage', function () {
-    \Illuminate\Support\Facades\Artisan::call('storage:link');
-    return 'Storage linked successfully!';
+    $target = storage_path('app/public');
+    $link = public_path('storage');
+    
+    if (file_exists($link)) {
+        return 'Folder "storage" sudah ada di folder public. Jika gambar tetap tidak muncul, silakan hapus dulu folder "storage" yang ada di dalam folder "public" Mas lewat hPanel, baru buka link ini lagi.';
+    }
+
+    if (symlink($target, $link)) {
+        return 'Storage linked successfully via direct symlink!';
+    } else {
+        return 'Gagal membuat link. Silakan hubungi saya lagi Mas.';
+    }
 });
+
 
 
 Route::get('/', function () {
