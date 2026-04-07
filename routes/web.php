@@ -27,7 +27,18 @@ Route::get('/cek-error-bliyyan', function () {
 
 
 
+Route::get('/buat-saya-jadi-admin', function () {
+    if (!auth()->check()) return "Gagal: Mas Irwan harus LOGIN dulu lewat Pi Browser.";
+    
+    $user = \App\Models\User::find(auth()->id());
+    $user->is_admin = true;
+    $user->save();
+    
+    return "BERHASIL! Akun " . $user->name . " sekarang sudah jadi ADMIN. Silakan buka menu Admin Mas.";
+});
+
 Route::get('/', function () {
+
 
 
     return Inertia::render('Welcome', [
