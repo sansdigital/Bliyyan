@@ -25,6 +25,17 @@ export default function Show({ order }) {
                 throw new Error("Buka melalui Pi Browser untuk melakukan pembayaran.");
             }
 
+            // Step 1: Authenticate with payments scope first (required by Pi SDK)
+            const scopes = ['username', 'payments'];
+            await window.Pi.authenticate(scopes, async (payment) => {
+                // Handle any incomplete payment from previous session
+                console.log("Incomplete payment found during pay:", payment);
+                try {
+                    await axios.post(route('pi.approve'), { paymentId: payment.identifier, order_id: order.id });
+                } catch (e) { console.error(e); }
+            });
+
+            // Step 2: Now create the actual payment
             await window.Pi.createPayment({
                 amount: parseFloat(order.total_price),
                 memo: `Pembayaran Pesanan #${order.id} di Bliyyan`,
@@ -53,6 +64,7 @@ export default function Show({ order }) {
             setPaying(false);
         }
     };
+
 
     return (
         <AuthenticatedLayout>
