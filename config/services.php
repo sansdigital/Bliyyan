@@ -36,7 +36,10 @@ return [
     ],
 
     'pi' => [
+        'api_url' => env('PI_API_URL', 'https://api.minepi.com/v2'),
         'api_key' => env('PI_API_KEY'),
+        'sandbox' => env('PI_SANDBOX', true),
     ],
+
 
 ];

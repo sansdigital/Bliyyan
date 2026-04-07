@@ -12,9 +12,8 @@ use Illuminate\Support\Facades\Log;
 
 class PiPaymentController extends Controller
 {
-    private $pi_api_url = "https://api.minepi.com/v2";
-
     public function approve(Request $request)
+
     {
         $id = $request->paymentId;
         Log::info("Pi Approvid Payment: " . $id);
@@ -22,7 +21,7 @@ class PiPaymentController extends Controller
         try {
             $response = Http::withoutVerifying()
                 ->withToken(config('services.pi.api_key'))
-                ->post($this->pi_api_url . "/payments/{$id}/approve");
+                ->post(config('services.pi.api_url') . "/payments/{$id}/approve");
 
             if ($response->successful()) {
                 Log::info("Payment approved by server: " . $id);
@@ -46,9 +45,10 @@ class PiPaymentController extends Controller
         try {
             $response = Http::withoutVerifying()
                 ->withToken(config('services.pi.api_key'))
-                ->post($this->pi_api_url . "/payments/{$id}/complete", [
+                ->post(config('services.pi.api_url') . "/payments/{$id}/complete", [
                     'txid' => $txid
                 ]);
+
 
             if ($response->successful()) {
                  // Update Order & Payment record here

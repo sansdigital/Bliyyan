@@ -11,7 +11,8 @@
 
         <!-- Pi SDK -->
         <script src="https://sdk.minepi.com/pi-sdk.js"></script>
-        <script>Pi.init({ version: "2.0", sandbox: true })</script>
+        <script>Pi.init({ version: "2.0", sandbox: {{ config('services.pi.sandbox') ? 'true' : 'false' }} })</script>
+
 
         <!-- Scripts -->
         @routes

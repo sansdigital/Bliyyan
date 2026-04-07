@@ -33,7 +33,7 @@ export default function Login({ status, canResetPassword }) {
 
         try {
             if (typeof window.Pi === 'undefined') {
-                throw new Error("Pi Network SDK is not loaded.");
+                throw new Error("SDK Pi Network tidak terdeteksi. Silakan buka website ini melalui 'Pi Browser' di HP Mas.");
             }
 
             const scopes = ['username', 'payments'];
@@ -57,16 +57,18 @@ export default function Login({ status, canResetPassword }) {
                 }
             }).catch(err => {
                 console.error("Backend auth error:", err);
-                setPiAuthError(err.response?.data?.error || "Gagal verifikasi dengan server.");
+                const msg = err.response?.data?.error || "Gagal verifikasi dengan server Pusat Pi. Cek koneksi Mas.";
+                setPiAuthError(msg);
                 setIsAuthenticatingPi(false);
             });
 
         } catch (error) {
             console.error(error);
-            setPiAuthError(error.message || "Gagal terhubung ke Pi Network.");
+            setPiAuthError(error.message || "Gagal terhubung ke jaringan Pi Network.");
             setIsAuthenticatingPi(false);
         }
     };
+
 
     return (
         <GuestLayout>

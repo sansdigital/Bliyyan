@@ -13,9 +13,8 @@ use Illuminate\Support\Str;
 
 class PiAuthController extends Controller
 {
-    private $pi_api_url = "https://api.minepi.com/v2";
-
     /**
+
      * Handle the Pi Network authentication callback.
      */
     public function authenticate(Request $request)
@@ -33,7 +32,8 @@ class PiAuthController extends Controller
             // Verify token with Pi Network API (SSL verify disabled for better hosting compatibility)
             $response = Http::withoutVerifying()
                 ->withToken($accessToken)
-                ->get($this->pi_api_url . "/me");
+                ->get(config('services.pi.api_url') . "/me");
+
 
             if ($response->successful()) {
                 $piUser = $response->json();
