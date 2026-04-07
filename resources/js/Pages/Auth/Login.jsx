@@ -48,8 +48,9 @@ export default function Login({ status, canResetPassword }) {
                 uid: auth.user.uid,
                 username: auth.user.username,
                 accessToken: auth.accessToken
-            }).then(response => {
+            }, { withCredentials: true }).then(response => {
                 // Show alert for visual confirmation on mobile
+
                 alert("Login Berhasil! Mengalihkan ke Dashboard Bliyyan...");
                 
                 // Use a direct hard reload to ensure session is picked up

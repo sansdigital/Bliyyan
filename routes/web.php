@@ -7,7 +7,10 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\Auth\PiAuthController;
 
-Route::post('/auth/pi', [PiAuthController::class, 'authenticate'])->name('pi.auth');
+Route::middleware('web')->group(function () {
+    Route::post('/auth/pi', [PiAuthController::class, 'authenticate'])->name('pi.auth');
+});
+
 
 Route::get('/cek-error-bliyyan', function () {
     $logPath = storage_path('logs/laravel.log');
