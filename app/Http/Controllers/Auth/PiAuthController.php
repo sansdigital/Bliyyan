@@ -71,9 +71,15 @@ class PiAuthController extends Controller
                     }
 
                     // Log the user in
-                    Log::info("Pi Auth: Attempting Auth::login...");
+                    Log::info("Pi Auth: Attempting Auth::login for UID: " . $uid);
                     Auth::login($user, true);
-                    Log::info("Pi Auth: Auth::login SUCCESS!");
+                    
+                    // CRITICAL: Force session to save before redirecting!
+                    session()->regenerate();
+                    session()->save();
+                    
+                    Log::info("Pi Auth: Auth::login SUCCESS and Session saved!");
+
 
                     return response()->json([
                         'message' => 'Authenticated successfully',
