@@ -13,13 +13,15 @@ Route::get('/cek-error-bliyyan', function () {
     $logPath = storage_path('logs/laravel.log');
     $log = file_exists($logPath) ? implode("\n", array_slice(explode("\n", file_get_contents($logPath)), -200)) : "Log file not found.";
     
+    $isLoggedIn = auth()->check() ? "YES (User ID: " . auth()->id() . ")" : "NO";
     $sessionDriver = config('session.driver');
     $db = config('database.default');
     $appUrl = config('app.url');
 
-    return response("APP_URL: $appUrl\nDRIVER: $sessionDriver | DB: $db\n\nLOGS (Last 200 lines):\n$log", 200)
+    return response("AUTH STATUS: $isLoggedIn\nAPP_URL: $appUrl\nDRIVER: $sessionDriver | DB: $db\n\nLOGS (Last 200 lines):\n$log", 200)
         ->header('Content-Type', 'text/plain');
 });
+
 
 
 Route::get('/', function () {
