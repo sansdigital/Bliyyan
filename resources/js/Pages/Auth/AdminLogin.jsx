@@ -17,10 +17,11 @@ export default function AdminLogin({ status, canResetPassword }) {
     const submit = (e) => {
         e.preventDefault();
 
-        post(route('login'), {
+        post(route('admin.login.post'), {
             onFinish: () => reset('password'),
         });
     };
+
 
     return (
         <GuestLayout>
