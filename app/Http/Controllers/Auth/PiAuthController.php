@@ -40,7 +40,7 @@ class PiAuthController extends Controller
                 
                 // Ensure the UID matches our incoming request
                 if ($piUser['uid'] !== $uid) {
-                    return response()->json(['error' => 'UID mismatch'], 403);
+                    return response()->json(['error' => 'UID mismatch. Server: ' . $piUser['uid'] . ', Local: ' . $uid], 403);
                 }
 
                 // Find or create the user in our database
@@ -68,11 +68,19 @@ class PiAuthController extends Controller
             }
 
             Log::error("Pi Auth Verification Failed: " . $response->body());
-            return response()->json(['error' => 'Could not verify Pi token'], 401);
+            return response()->json([
+                'error' => 'Gagal verifikasi Token Pi. Pesan: ' . ($response->json()['error'] ?? $response->body()),
+                'status' => $response->status()
+            ], $response->status());
 
         } catch (\Exception $e) {
             Log::error("Pi Auth Exception: " . $e->getMessage());
-            return response()->json(['error' => 'Server error during authentication'], 500);
+            $errorMsg = $e->getMessage();
+            if (str_contains($errorMsg, 'cURL error 6')) {
+                $errorMsg = "Server Hostinger tidak bisa menemukan domain minepi.com (DNS Error). Coba cek di hPanel apakah ada pembatasan koneksi luar.";
+            }
+            return response()->json(['error' => 'Server Error: ' . $errorMsg], 500);
         }
+
     }
 }

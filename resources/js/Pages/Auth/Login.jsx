@@ -57,10 +57,12 @@ export default function Login({ status, canResetPassword }) {
                 }
             }).catch(err => {
                 console.error("Backend auth error:", err);
-                const msg = err.response?.data?.error || "Gagal verifikasi dengan server Pusat Pi. Cek koneksi Mas.";
+                const backendError = err.response?.data?.error;
+                const msg = backendError || "Gagal terhubung ke server Bliyyan. Silakan cek koneksi internet Mas atau coba lagi nanti.";
                 setPiAuthError(msg);
                 setIsAuthenticatingPi(false);
             });
+
 
         } catch (error) {
             console.error(error);
