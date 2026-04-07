@@ -196,7 +196,7 @@ export default function Index({ auth, items, addresses = [] }) {
                                     />
                                     <button 
                                         onClick={handleApplyVoucher}
-                                        className="bg-gray-800 text-white px-4 py-2 rounded-sm text-xs font-bold uppercase hover:bg-gray-700 transition-colors"
+                                        className="btn-shopee-dark px-4 py-2"
                                     >
                                         Terapkan
                                     </button>
@@ -237,13 +237,13 @@ export default function Index({ auth, items, addresses = [] }) {
                                 </div>
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                                     <span className="text-xs text-gray-500">Total Pembayaran:</span>
-                                    <span className="text-xl sm:text-2xl font-black text-shopee">π {total.toFixed(4)}</span>
+                                    <span className="text-xl sm:text-2xl font-black text-shopee-dark">π {total.toFixed(4)}</span>
                                 </div>
                             </div>
                             <button 
                                 onClick={handleCheckout}
                                 disabled={loading}
-                                className="bg-shopee text-white px-8 py-3 rounded-sm font-bold uppercase disabled:bg-gray-400 active:scale-95 transition-transform shadow-lg"
+                                className="btn-shopee px-8 py-3 shadow-lg"
                             >
                                 {loading ? 'Memproses...' : 'Checkout Belanja'}
                             </button>
@@ -251,6 +251,7 @@ export default function Index({ auth, items, addresses = [] }) {
                     </div>
                 </div>
             )}
+
         </AuthenticatedLayout>
     );
 }

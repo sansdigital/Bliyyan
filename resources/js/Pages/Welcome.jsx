@@ -78,14 +78,15 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
             </Head>
 
             {/* Top Navigation */}
-            <nav className="bg-shopee text-white shadow-md sticky top-0 z-50">
+            <nav className="bg-shopee text-shopee-dark shadow-md sticky top-0 z-50">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-20 items-center justify-between">
                         {/* Logo & Search */}
                             <Link href="/" className="flex items-center gap-2 transition-transform active:scale-95">
-                                <img src="/images/logonet.png" alt="Logo" className="h-7 w-auto drop-shadow-sm" />
-                                <span className="text-xl font-black tracking-tighter text-white mt-1">Bliyyan</span>
+                                <img src="/images/logonet.png" alt="Logo" className="h-7 w-auto drop-shadow-sm brightness-0" />
+                                <span className="text-xl font-black tracking-tighter text-shopee-dark mt-1">Bliyyan</span>
                             </Link>
+
                             
 
 

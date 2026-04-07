@@ -16,3 +16,26 @@
 .animate-slide-in {
     animation: slide-in 0.22s ease-out forwards;
 }
+
+@layer components {
+    .btn-shopee {
+        @apply inline-flex items-center justify-center px-4 py-2.5 bg-shopee text-shopee-dark font-black uppercase tracking-widest rounded-xl transition-all duration-200 shadow-sm active:scale-95 hover:bg-shopee-hover hover:shadow-md disabled:opacity-50 disabled:pointer-events-none text-xs;
+    }
+
+    .btn-shopee-dark {
+        @apply inline-flex items-center justify-center px-4 py-2.5 bg-shopee-dark text-white font-black uppercase tracking-widest rounded-xl transition-all duration-200 shadow-sm active:scale-95 hover:bg-gray-800 hover:shadow-md disabled:opacity-50 disabled:pointer-events-none text-xs;
+    }
+
+    .input-shopee {
+        @apply border-gray-200 focus:border-shopee focus:ring focus:ring-shopee focus:ring-opacity-50 rounded-xl transition-all shadow-sm;
+    }
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+

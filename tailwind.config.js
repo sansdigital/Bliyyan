@@ -14,13 +14,15 @@ export default {
         extend: {
             colors: {
                 shopee: {
-                    DEFAULT: '#111111', // Hitam (Dominant)
-                    hover: '#333333',
+                    DEFAULT: '#D4AF37', // Kuning Emas (Primary Action)
+                    dark: '#111111',    // Hitam (Structure)
+                    hover: '#B8860B',   // Darker Gold for hover
                     bg: '#fafafa',
-                    gold: '#D4AF37', // Kuning Emas
-                    red: '#DC2626', // Merah
+                    gold: '#D4AF37',
+                    red: '#DC2626',
                 },
             },
+
             fontFamily: {
                 sans: ['Outfit', ...defaultTheme.fontFamily.sans],
             },

@@ -90,10 +90,11 @@ export default function Login({ status, canResetPassword }) {
                         <button
                             onClick={handlePiLogin}
                             disabled={isAuthenticatingPi}
-                            className={`w-full flex items-center justify-center space-x-3 py-4 px-6 border border-transparent rounded-2xl shadow-lg text-white bg-gradient-to-r from-[#f3ba2f] to-[#f9a826] hover:opacity-90 transition-all font-bold text-lg ${
+                            className={`w-full flex items-center justify-center space-x-3 py-4 px-6 border border-transparent rounded-2xl shadow-lg text-shopee-dark bg-shopee hover:bg-shopee-hover active:scale-95 transition-all font-black text-lg ${
                                 isAuthenticatingPi ? 'opacity-70 cursor-not-allowed' : ''
                             }`}
                         >
+
                             <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M11 2v4.22h-.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1H11v8.83c0 .61.49 1.1 1.1 1.1s1.1-.49 1.1-1.1V8.42h2.23c2.4 0 4.35 1.95 4.35 4.35s-1.95 4.35-4.35 4.35h-.8v2.2h.8c3.61 0 6.55-2.94 6.55-6.55s-2.94-6.55-6.55-6.55H13.2V2H11zm-5.45 6.42A1.1 1.1 0 0 0 4.45 9.5a1.1 1.1 0 0 0 1.1 1.11A1.1 1.1 0 0 0 6.64 9.5a1.1 1.1 0 0 0-1.09-1.08z"/>
                             </svg>
