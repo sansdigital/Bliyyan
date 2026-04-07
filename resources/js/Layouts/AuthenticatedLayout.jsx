@@ -24,15 +24,16 @@ export default function AuthenticatedLayout({ children, header }) {
         <div className="min-h-screen bg-zinc-100 flex justify-center w-full font-sans">
             <div className="w-full max-w-[480px] bg-gray-50 min-h-screen relative shadow-2xl flex flex-col overflow-x-hidden pb-[72px]">
             {/* Top Navigation */}
-            <nav className="bg-shopee text-shopee-dark shadow-md sticky top-0 z-50">
+            <nav className="bg-shopee-dark text-white shadow-md sticky top-0 z-50">
                 <div className="mx-auto w-full px-4">
                     <div className="flex h-14 items-center justify-between">
                         {/* Logo & Search */}
                         <div className="flex flex-1 items-center gap-3">
                             <Link href="/" className="flex items-center gap-2 transition-transform active:scale-95">
-                                <img src="/images/logonet.png" alt="Logo" className="h-7 w-auto drop-shadow-sm brightness-0" />
-                                <span className="text-xl font-black tracking-tighter text-shopee-dark mt-1">Bliyyan</span>
+                                <img src="/images/logonet.png" alt="Logo" className="h-7 w-auto drop-shadow-sm" />
+                                <span className="text-xl font-black tracking-tighter text-white mt-1">Bliyyan</span>
                             </Link>
+
 
 
 
