@@ -11,13 +11,16 @@ Route::post('/auth/pi', [PiAuthController::class, 'authenticate'])->name('pi.aut
 
 Route::get('/cek-error-bliyyan', function () {
     $logPath = storage_path('logs/laravel.log');
-    if (!file_exists($logPath)) return "Log file not found.";
+    $log = file_exists($logPath) ? implode("\n", array_slice(explode("\n", file_get_contents($logPath)), -200)) : "Log file not found.";
     
-    // Read the last 200 lines to keep it small
-    $lines = array_slice(explode("\n", file_get_contents($logPath)), -200);
-    return response(implode("\n", $lines), 200)
+    $sessionDriver = config('session.driver');
+    $db = config('database.default');
+    $appUrl = config('app.url');
+
+    return response("APP_URL: $appUrl\nDRIVER: $sessionDriver | DB: $db\n\nLOGS (Last 200 lines):\n$log", 200)
         ->header('Content-Type', 'text/plain');
 });
+
 
 Route::get('/', function () {
 

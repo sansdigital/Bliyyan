@@ -49,12 +49,11 @@ export default function Login({ status, canResetPassword }) {
                 username: auth.user.username,
                 accessToken: auth.accessToken
             }).then(response => {
-                // Redirect on success
-                if (response.data.redirect) {
-                    window.location.href = response.data.redirect;
-                } else {
-                    router.visit(route('dashboard'));
-                }
+                // Show alert for visual confirmation on mobile
+                alert("Login Berhasil! Mengalihkan ke Dashboard Bliyyan...");
+                
+                // Use a direct hard reload to ensure session is picked up
+                window.location.assign(route('dashboard'));
             }).catch(err => {
                 console.error("Backend auth error:", err);
                 const backendError = err.response?.data?.error;
@@ -62,6 +61,7 @@ export default function Login({ status, canResetPassword }) {
                 setPiAuthError(msg);
                 setIsAuthenticatingPi(false);
             });
+
 
 
         } catch (error) {
