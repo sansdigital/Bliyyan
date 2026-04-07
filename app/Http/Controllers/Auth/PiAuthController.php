@@ -42,36 +42,48 @@ class PiAuthController extends Controller
             Log::info("Pi Auth: Response Status: " . $response->status());
 
             if ($response->successful()) {
-
                 $piUser = $response->json();
+                Log::info("Pi Auth: API OK for UID: " . $piUser['uid'] . " Username: " . ($piUser['username'] ?? 'None'));
                 
                 // Ensure the UID matches our incoming request
                 if ($piUser['uid'] !== $uid) {
-                    return response()->json(['error' => 'UID mismatch. Server: ' . $piUser['uid'] . ', Local: ' . $uid], 403);
+                    Log::warning("Pi Auth: UID Mismatch! Server: " . $piUser['uid'] . ", Local: " . $uid);
+                    return response()->json(['error' => 'UID mismatch.'], 403);
                 }
 
                 // Find or create the user in our database
-                $user = User::where('pi_uid', $uid)->first();
-                
-                if (!$user) {
-                    // Check if we have an existing user with the same username (if we capture it)
-                    $user = User::create([
-                        'name' => $request->username ?? 'Pi User ' . substr($uid, 0, 8),
-                        'email' => $uid . '@pi.network', // Virtual email for compatibility
-                        'password' => bcrypt(Str::random(16)), // Dummy password
-                        'pi_uid' => $uid,
-                        'is_admin' => false
+                try {
+                    Log::info("Pi Auth: Looking for user UID: " . $uid);
+                    $user = User::where('pi_uid', $uid)->first();
+                    
+                    if (!$user) {
+                        Log::info("Pi Auth: User not found, creating new user...");
+                        $user = User::create([
+                            'name' => $request->username ?? 'Pi User ' . substr($uid, 0, 8),
+                            'email' => $uid . '@pi.network', // Virtual email for compatibility
+                            'password' => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(16)), // Dummy password
+                            'pi_uid' => $uid,
+                            'is_admin' => false
+                        ]);
+                        Log::info("Pi Auth: New user created with ID: " . $user->id);
+                    } else {
+                        Log::info("Pi Auth: User found with ID: " . $user->id);
+                    }
+
+                    // Log the user in
+                    Log::info("Pi Auth: Attempting Auth::login...");
+                    Auth::login($user, true);
+                    Log::info("Pi Auth: Auth::login SUCCESS!");
+
+                    return response()->json([
+                        'message' => 'Authenticated successfully',
+                        'user' => $user,
+                        'redirect' => route('dashboard')
                     ]);
+                } catch (\Exception $dbEx) {
+                    Log::error("Pi Auth DB/Login Error: " . $dbEx->getMessage());
+                    return response()->json(['error' => 'Database/Login Error: ' . $dbEx->getMessage()], 500);
                 }
-
-                // Log the user in
-                Auth::login($user, true);
-
-                return response()->json([
-                    'message' => 'Authenticated successfully',
-                    'user' => $user,
-                    'redirect' => route('dashboard')
-                ]);
             }
 
             Log::error("Pi Auth Verification Failed: " . $response->body());
@@ -88,6 +100,7 @@ class PiAuthController extends Controller
             }
             return response()->json(['error' => 'Server Error: ' . $errorMsg], 500);
         }
+
 
     }
 }
