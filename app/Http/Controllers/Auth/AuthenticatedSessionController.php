@@ -16,13 +16,16 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Login', [
+        $view = Route::currentRouteName() === 'admin.login' ? 'Auth/AdminLogin' : 'Auth/Login';
+        
+        return Inertia::render($view, [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
         ]);
     }
+
 
     /**
      * Handle an incoming authentication request.

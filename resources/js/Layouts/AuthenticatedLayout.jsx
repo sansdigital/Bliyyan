@@ -78,8 +78,6 @@ export default function AuthenticatedLayout({ children, header }) {
                                 ) : (
                                     <div className="flex items-center gap-2">
                                         <Link href={route('login')} className="text-xs font-bold hover:underline">MASUK</Link>
-                                        <span className="opacity-30">|</span>
-                                        <Link href={route('register')} className="text-xs font-bold hover:underline">DAFTAR</Link>
                                     </div>
                                 )}
                             </div>

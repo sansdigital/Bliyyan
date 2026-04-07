@@ -12,35 +12,7 @@ Route::middleware('web')->group(function () {
 });
 
 
-Route::get('/cek-error-bliyyan', function () {
-    $logPath = storage_path('logs/laravel.log');
-    $log = file_exists($logPath) ? implode("\n", array_slice(explode("\n", file_get_contents($logPath)), -200)) : "Log file not found.";
-    
-    $isLoggedIn = auth()->check() ? "YES (User ID: " . auth()->id() . ")" : "NO";
-    $sessionDriver = config('session.driver');
-    $db = config('database.default');
-    $appUrl = config('app.url');
-
-    return response("AUTH STATUS: $isLoggedIn\nAPP_URL: $appUrl\nDRIVER: $sessionDriver | DB: $db\n\nLOGS (Last 200 lines):\n$log", 200)
-        ->header('Content-Type', 'text/plain');
-});
-
-
-
-Route::get('/buat-saya-jadi-admin', function () {
-    if (!auth()->check()) return "Gagal: Mas Irwan harus LOGIN dulu lewat Pi Browser.";
-    
-    $user = \App\Models\User::find(auth()->id());
-    $user->is_admin = true;
-    $user->save();
-    
-    return "BERHASIL! Akun " . $user->name . " sekarang sudah jadi ADMIN. Silakan buka menu Admin Mas.";
-});
-
 Route::get('/', function () {
-
-
-
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
