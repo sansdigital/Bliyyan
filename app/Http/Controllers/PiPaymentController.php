@@ -20,7 +20,7 @@ class PiPaymentController extends Controller
 
         try {
             $response = Http::withoutVerifying()
-                ->withToken(config('services.pi.api_key'))
+                ->withHeader('Authorization', 'Key ' . config('services.pi.api_key'))
                 ->post(config('services.pi.api_url') . "/payments/{$id}/approve");
 
             if ($response->successful()) {
@@ -60,7 +60,7 @@ class PiPaymentController extends Controller
 
         try {
             $response = Http::withoutVerifying()
-                ->withToken(config('services.pi.api_key'))
+                ->withHeader('Authorization', 'Key ' . config('services.pi.api_key'))
                 ->post(config('services.pi.api_url') . "/payments/{$id}/complete", [
                     'txid' => $txid
                 ]);
