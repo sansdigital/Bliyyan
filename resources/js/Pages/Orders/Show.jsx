@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import axios from 'axios';
 
 const statusConfig = {
     pending:   { label: 'Menunggu Pembayaran', color: 'text-yellow-600 bg-yellow-50 border-yellow-200', icon: '⏳' },
@@ -12,6 +14,45 @@ const statusConfig = {
 
 export default function Show({ order }) {
     const status = statusConfig[order.status] || statusConfig.pending;
+    const [paying, setPaying] = useState(false);
+    const [payError, setPayError] = useState(null);
+
+    const handlePay = async () => {
+        setPayError(null);
+        setPaying(true);
+        try {
+            if (typeof window.Pi === 'undefined') {
+                throw new Error("Buka melalui Pi Browser untuk melakukan pembayaran.");
+            }
+
+            await window.Pi.createPayment({
+                amount: parseFloat(order.total_price),
+                memo: `Pembayaran Pesanan #${order.id} di Bliyyan`,
+                metadata: { order_id: order.id },
+            }, {
+                onReadyForServerApproval: async (paymentId) => {
+                    await axios.post(route('pi.approve'), { paymentId, order_id: order.id });
+                },
+                onReadyForServerCompletion: async (paymentId, txid) => {
+                    await axios.post(route('pi.complete'), { paymentId, txid, order_id: order.id });
+                    router.reload();
+                },
+                onCancel: async (paymentId) => {
+                    await axios.post(route('pi.cancel'), { paymentId });
+                    setPaying(false);
+                },
+                onError: (error) => {
+                    console.error('Pi Payment Error:', error);
+                    setPayError('Pembayaran gagal: ' + (error?.message || 'Coba lagi ya.'));
+                    setPaying(false);
+                },
+            });
+        } catch (err) {
+            console.error(err);
+            setPayError(err.message || 'Gagal memulai pembayaran Pi.');
+            setPaying(false);
+        }
+    };
 
     return (
         <AuthenticatedLayout>
@@ -101,10 +142,52 @@ export default function Show({ order }) {
                     </div>
 
                     {/* Footer CTA */}
-                    <div className="p-4 flex gap-3">
-                        <Link href={route('dashboard')} className="flex-1 border border-shopee text-shopee text-center py-2.5 rounded-sm text-sm font-bold hover:bg-shopee/5 transition-colors">
-                            Lanjut Belanja
-                        </Link>
+                    <div className="p-4 flex flex-col gap-3">
+                        {order.status === 'pending' && (
+                            <>
+                                <button
+                                    onClick={handlePay}
+                                    disabled={paying}
+                                    className={`w-full flex items-center justify-center gap-3 py-4 rounded-sm font-black text-base shadow-md transition-all active:scale-95
+                                        ${paying
+                                            ? 'bg-shopee/60 text-shopee-dark cursor-not-allowed'
+                                            : 'bg-shopee text-shopee-dark hover:bg-shopee-hover'}
+                                    `}
+                                >
+                                    {paying ? (
+                                        <>
+                                            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                                            </svg>
+                                            <span>Memproses Pembayaran...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                                <path d="M11 2v4.22h-.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1H11v8.83c0 .61.49 1.1 1.1 1.1s1.1-.49 1.1-1.1V8.42h2.23c2.4 0 4.35 1.95 4.35 4.35s-1.95 4.35-4.35 4.35h-.8v2.2h.8c3.61 0 6.55-2.94 6.55-6.55s-2.94-6.55-6.55-6.55H13.2V2H11zm-5.45 6.42A1.1 1.1 0 0 0 4.45 9.5a1.1 1.1 0 0 0 1.1 1.11A1.1 1.1 0 0 0 6.64 9.5a1.1 1.1 0 0 0-1.09-1.08z"/>
+                                            </svg>
+                                            <span>Bayar Sekarang dengan Pi · π {Number(order.total_price).toFixed(4)}</span>
+                                        </>
+                                    )}
+                                </button>
+
+                                {payError && (
+                                    <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-sm p-3 font-medium">
+                                        ⚠️ {payError}
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        <div className="flex gap-3">
+                            <Link href={route('orders.index')} className="flex-1 border border-gray-200 text-gray-500 text-center py-2.5 rounded-sm text-sm font-bold hover:bg-gray-50 transition-colors">
+                                Daftar Pesanan
+                            </Link>
+                            <Link href={route('dashboard')} className="flex-1 border border-shopee text-shopee text-center py-2.5 rounded-sm text-sm font-bold hover:bg-shopee/5 transition-colors">
+                                Lanjut Belanja
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>

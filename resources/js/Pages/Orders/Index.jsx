@@ -97,13 +97,27 @@ export default function Index({ orders }) {
                                         <div className="text-sm text-gray-500">
                                             Total: <span className="font-black text-shopee text-base ml-1">π {Number(order.total_price).toFixed(4)}</span>
                                         </div>
-                                        <Link
-                                            href={route('orders.show', order.id)}
-                                            className="text-xs text-shopee font-bold border border-shopee px-3 py-1.5 rounded hover:bg-shopee hover:text-white transition-colors"
-                                        >
-                                            Lihat Detail
-                                        </Link>
+                                        <div className="flex items-center gap-2">
+                                            {order.status === 'pending' && (
+                                                <Link
+                                                    href={route('orders.show', order.id)}
+                                                    className="flex items-center gap-1.5 text-xs text-shopee-dark font-black bg-shopee border border-shopee px-3 py-1.5 rounded hover:bg-shopee-hover transition-colors"
+                                                >
+                                                    <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                                        <path d="M11 2v4.22h-.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1H11v8.83c0 .61.49 1.1 1.1 1.1s1.1-.49 1.1-1.1V8.42h2.23c2.4 0 4.35 1.95 4.35 4.35s-1.95 4.35-4.35 4.35h-.8v2.2h.8c3.61 0 6.55-2.94 6.55-6.55s-2.94-6.55-6.55-6.55H13.2V2H11z"/>
+                                                    </svg>
+                                                    Bayar
+                                                </Link>
+                                            )}
+                                            <Link
+                                                href={route('orders.show', order.id)}
+                                                className="text-xs text-shopee font-bold border border-shopee px-3 py-1.5 rounded hover:bg-shopee hover:text-white transition-colors"
+                                            >
+                                                Lihat Detail
+                                            </Link>
+                                        </div>
                                     </div>
+
                                 </div>
                             );
                         })}

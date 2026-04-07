@@ -13,10 +13,10 @@ use Illuminate\Support\Facades\Log;
 class PiPaymentController extends Controller
 {
     public function approve(Request $request)
-
     {
         $id = $request->paymentId;
-        Log::info("Pi Approvid Payment: " . $id);
+        $orderId = $request->order_id;
+        Log::info("Pi Approve Payment: " . $id . " for order: " . $orderId);
 
         try {
             $response = Http::withoutVerifying()
@@ -24,10 +24,25 @@ class PiPaymentController extends Controller
                 ->post(config('services.pi.api_url') . "/payments/{$id}/approve");
 
             if ($response->successful()) {
+                // Create a Payment record linking this pi_payment_id to the order
+                if ($orderId) {
+                    $order = Order::find($orderId);
+                    if ($order) {
+                        Payment::updateOrCreate(
+                            ['pi_payment_id' => $id],
+                            [
+                                'order_id' => $order->id,
+                                'amount'   => $order->total_price,
+                                'status'   => 'pending',
+                            ]
+                        );
+                    }
+                }
+
                 Log::info("Payment approved by server: " . $id);
                 return response()->json(["message" => "Approved"]);
             }
-            
+
             Log::error("Pi Approve Failed: " . $response->body());
             return response()->json(["error" => "Approve failed"], 400);
         } catch (\Exception $e) {
@@ -35,6 +50,7 @@ class PiPaymentController extends Controller
             return response()->json(["error" => $e->getMessage()], 500);
         }
     }
+
 
     public function complete(Request $request)
     {
@@ -51,26 +67,42 @@ class PiPaymentController extends Controller
 
 
             if ($response->successful()) {
-                 // Update Order & Payment record here
-                 $payment = Payment::where('pi_payment_id', $id)->first();
-                 if ($payment) {
-                     $payment->update([
-                         'payment_status' => 'completed',
-                         'pi_transaction_id' => $txid,
-                         'raw_response' => $response->json()
-                     ]);
-                     
-                     $order = $payment->order;
-                     $order->update(['status' => 'paid']);
+                $payment = Payment::where('pi_payment_id', $id)->first();
+                if ($payment) {
+                    $payment->update([
+                        'status'       => 'completed',
+                        'raw_response' => $response->json(),
+                    ]);
 
-                     // Reduce stock for each item in the order
-                     foreach ($order->items as $item) {
-                         $product = $item->product;
-                         if ($product) {
-                             $product->decrement('stock', $item->quantity);
-                         }
-                     }
-                 }
+                    $order = $payment->order;
+                    if ($order) {
+                        $order->update(['status' => 'paid']);
+
+                        // Reduce stock for each item in the order
+                        foreach ($order->items as $item) {
+                            $product = $item->product;
+                            if ($product) {
+                                $product->decrement('stock', $item->quantity);
+                            }
+                        }
+                    }
+                } else {
+                    // Fallback: find order by order_id and mark as paid
+                    $orderId = $request->order_id;
+                    if ($orderId) {
+                        $order = Order::find($orderId);
+                        if ($order) {
+                            $order->update(['status' => 'paid']);
+                            Payment::create([
+                                'order_id'     => $order->id,
+                                'pi_payment_id' => $id,
+                                'amount'       => $order->total_price,
+                                'status'       => 'completed',
+                                'raw_response' => $response->json(),
+                            ]);
+                        }
+                    }
+                }
 
                 Log::info("Payment completed by server: " . $id);
                 return response()->json(["message" => "Completed"]);
