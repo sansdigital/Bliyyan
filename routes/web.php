@@ -9,6 +9,12 @@ use App\Http\Controllers\Auth\PiAuthController;
 
 Route::post('/auth/pi', [PiAuthController::class, 'authenticate'])->name('pi.auth');
 
+Route::get('/fix-storage', function () {
+    \Illuminate\Support\Facades\Artisan::call('storage:link');
+    return 'Storage linked successfully!';
+});
+
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
