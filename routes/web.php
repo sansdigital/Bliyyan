@@ -9,7 +9,18 @@ use App\Http\Controllers\Auth\PiAuthController;
 
 Route::post('/auth/pi', [PiAuthController::class, 'authenticate'])->name('pi.auth');
 
+Route::get('/cek-error-bliyyan', function () {
+    $logPath = storage_path('logs/laravel.log');
+    if (!file_exists($logPath)) return "Log file not found.";
+    
+    // Read the last 200 lines to keep it small
+    $lines = array_slice(explode("\n", file_get_contents($logPath)), -200);
+    return response(implode("\n", $lines), 200)
+        ->header('Content-Type', 'text/plain');
+});
+
 Route::get('/', function () {
+
 
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),

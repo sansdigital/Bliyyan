@@ -28,14 +28,21 @@ class PiAuthController extends Controller
         $uid = $request->uid;
         $accessToken = $request->accessToken;
 
+        Log::info("Pi Auth: UID: $uid, Token: " . substr($accessToken, 0, 10) . "...");
+
         try {
             // Verify token with Pi Network API (SSL verify disabled for better hosting compatibility)
+            Log::info("Pi Auth: Attempting connection to " . config('services.pi.api_url'));
+
             $response = Http::withoutVerifying()
+                ->timeout(15) // Explicit 15s timeout
                 ->withToken($accessToken)
                 ->get(config('services.pi.api_url') . "/me");
 
+            Log::info("Pi Auth: Response Status: " . $response->status());
 
             if ($response->successful()) {
+
                 $piUser = $response->json();
                 
                 // Ensure the UID matches our incoming request
