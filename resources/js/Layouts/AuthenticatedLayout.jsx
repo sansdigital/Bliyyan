@@ -100,7 +100,7 @@ export default function AuthenticatedLayout({ children, header }) {
 
             <footer className="bg-white border-t border-gray-200 mt-auto py-10">
                 <div className="w-full px-4 text-center text-gray-400 text-[10px]">
-                    <p>&copy; 2026 Bliyyan.com Indonesia.</p>
+                    <p>&copy; {new Date().getFullYear()} Bliyyan. Powered by Sans Digital.</p>
                 </div>
             </footer>
 

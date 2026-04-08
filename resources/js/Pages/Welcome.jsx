@@ -321,7 +321,7 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                     </div>
                 </div>
                 <div className="border-t border-gray-100 mt-12 pt-8 text-center text-gray-400 text-[9px] sm:text-[10px]">
-                    <p>&copy; 2026 Bliyyan.com Indonesia. Built with Pi Network SDK & Laravel.</p>
+                    <p>&copy; {new Date().getFullYear()} Bliyyan. Powered by Sans Digital.</p>
                 </div>
             </footer>
             

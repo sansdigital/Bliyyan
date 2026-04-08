@@ -22,7 +22,7 @@ export default function GuestLayout({ children }) {
                 </div>
 
                 <footer className="py-10 text-center text-[10px] text-gray-400">
-                    <p>&copy; 2026 Bliyyan.com Indonesia</p>
+                    <p>&copy; {new Date().getFullYear()} Bliyyan. Powered by Sans Digital.</p>
                 </footer>
             </div>
         </div>
