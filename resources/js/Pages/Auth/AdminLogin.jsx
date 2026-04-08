@@ -131,18 +131,8 @@ export default function AdminLogin({ status, canResetPassword }) {
                     </form>
                 </div>
 
-                {/* Footer Navigation & Copyright */}
+                {/* Footer Copyright */}
                 <div className="mt-10 flex flex-col items-center space-y-6">
-                    <Link
-                        href={route('login')}
-                        className="group flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5"
-                    >
-                        <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                        </svg>
-                        Kembali ke Halaman Customer
-                    </Link>
-
                     <p className="text-xs text-gray-500 font-medium tracking-wide">
                         © 2026 Bliyyan. Powered by Sans Digital
                     </p>

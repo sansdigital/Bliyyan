@@ -125,18 +125,8 @@ export default function Login({ status, canResetPassword }) {
                     </div>
                 </div>
 
-                {/* Footer Navigation & Copyright */}
+                {/* Footer Copyright */}
                 <div className="mt-10 flex flex-col items-center space-y-6">
-                    <Link
-                        href={route('admin.login')}
-                        className="group flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5"
-                    >
-                        Login Pengelola Website
-                        <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                        </svg>
-                    </Link>
-
                     <p className="text-xs text-gray-500 font-medium tracking-wide text-center">
                         Bliyyan Marketplace &bull; Pi Ecosystem
                         <br />
