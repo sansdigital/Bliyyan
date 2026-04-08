@@ -23,6 +23,15 @@ Route::get('/', function () {
     ]);
 });
 
+// Legal Pages
+Route::get('/kebijakan-privasi', function () {
+    return Inertia::render('PrivacyPolicy');
+})->name('privacy.policy');
+
+Route::get('/syarat-dan-ketentuan', function () {
+    return Inertia::render('TermsAndConditions');
+})->name('terms.conditions');
+
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])->name('dashboard');
 
