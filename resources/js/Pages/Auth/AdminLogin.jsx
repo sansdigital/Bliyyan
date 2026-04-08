@@ -35,13 +35,12 @@ export default function AdminLogin({ status, canResetPassword }) {
             <div className="relative z-10 w-full max-w-md px-6 flex flex-col items-center">
                 
                 {/* Branding */}
-                <div className="text-center mb-8 transform transition-transform hover:scale-105 duration-300">
-                    <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#f3ba2f] to-[#f9d423] tracking-tight drop-shadow-sm">
-                        Bliyyan
-                    </h1>
-                    <div className="mt-3 inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/10">
-                        <p className="text-white/80 text-xs font-bold uppercase tracking-[0.2em]">Secure Portal</p>
-                    </div>
+                <div className="text-center mb-10 transform transition-transform hover:scale-105 duration-300">
+                    <img 
+                        src="/images/logonet.png" 
+                        alt="Bliyyan Admin Secure Portal" 
+                        className="h-16 w-auto mx-auto drop-shadow-2xl brightness-110" 
+                    />
                 </div>
 
                 {status && (
