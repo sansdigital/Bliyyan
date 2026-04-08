@@ -300,27 +300,8 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                 </div>
             </div>
 
-            <footer className="bg-white border-t border-gray-200 mt-20 py-12">
-                <div className="mx-auto max-w-7xl px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div>
-                        <h5 className="font-bold text-gray-700 mb-4 text-xs uppercase tracking-widest">Layanan Pelanggan</h5>
-                        <ul className="text-gray-500 text-[10px] sm:text-xs space-y-2">
-                            <li>{t('help')}</li>
-                            <li>Metode Pembayaran Pi</li>
-                            <li>{t('track_order')} Bliyyan</li>
-                            <li>Gratis Ongkir Pi</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h5 className="font-bold text-gray-700 mb-4 text-xs uppercase tracking-widest">Tentang Bliyyan</h5>
-                        <ul className="text-gray-500 text-[10px] sm:text-xs space-y-2">
-                            <li>{t('privacy_policy')}</li>
-                            <li>{t('contact_us')}</li>
-                            <li>Keamanan Pi</li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="border-t border-gray-100 mt-12 pt-8 text-center text-gray-400 text-[9px] sm:text-[10px]">
+            <footer className="bg-white border-t border-gray-200 mt-20 py-8">
+                <div className="text-center text-gray-400 text-[9px] sm:text-[10px]">
                     <p>&copy; {new Date().getFullYear()} Bliyyan. Powered by Sans Digital.</p>
                 </div>
             </footer>
