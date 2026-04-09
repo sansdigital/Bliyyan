@@ -1,10 +1,16 @@
 import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 
 export default function Login({ status, canResetPassword }) {
+    const { t, i18n } = useTranslation();
     const [piAuthError, setPiAuthError] = useState(null);
     const [isAuthenticatingPi, setIsAuthenticatingPi] = useState(false);
+
+    const changeLanguage = (lng) => {
+        i18n.changeLanguage(lng);
+    };
 
     const handlePiLogin = async () => {
         setPiAuthError(null);
@@ -79,17 +85,33 @@ export default function Login({ status, canResetPassword }) {
 
                 {/* Glassmorphism Card */}
                 <div className="w-full bg-white/5 backdrop-blur-xl p-8 rounded-[2rem] shadow-2xl border border-white/10 relative overflow-hidden">
+                    <div className="absolute top-4 right-6 z-20">
+                        <div className="flex items-center bg-white/10 rounded-lg p-1">
+                            <button 
+                                onClick={() => changeLanguage('id')}
+                                className={`px-2 py-1 text-[10px] font-black rounded-md transition-colors ${i18n.language === 'id' ? 'bg-[#f3ba2f] text-gray-900' : 'text-white hover:bg-white/10'}`}
+                            >
+                                ID
+                            </button>
+                            <button 
+                                onClick={() => changeLanguage('en')}
+                                className={`px-2 py-1 text-[10px] font-black rounded-md transition-colors ${i18n.language === 'en' ? 'bg-[#f3ba2f] text-gray-900' : 'text-white hover:bg-white/10'}`}
+                            >
+                                EN
+                            </button>
+                        </div>
+                    </div>
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#f3ba2f] to-transparent opacity-50"></div>
                     
                     <div className="mb-8 text-center">
-                        <h2 className="text-2xl font-bold text-white mb-2">Login Customer</h2>
-                        <p className="text-sm text-gray-400">Beli Apapun Dengan Pi Network</p>
+                        <h2 className="text-2xl font-bold text-white mb-2">{t('customer_login')}</h2>
+                        <p className="text-sm text-gray-400">{t('buy_anything')}</p>
                     </div>
 
                     <div className="space-y-6">
                         <div className="bg-[#f3ba2f]/10 p-5 rounded-2xl border border-[#f3ba2f]/20 text-center backdrop-blur-sm shadow-inner">
                             <p className="text-[#f3ba2f] text-sm font-semibold tracking-wide">
-                                Akses Bliyyan wajib masuk menggunakan Akun Pi resmi Anda.
+                                {t('access_requirement')}
                             </p>
                         </div>
 
@@ -104,7 +126,7 @@ export default function Login({ status, canResetPassword }) {
                                 <svg className="w-7 h-7 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M11 2v4.22h-.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1H11v8.83c0 .61.49 1.1 1.1 1.1s1.1-.49 1.1-1.1V8.42h2.23c2.4 0 4.35 1.95 4.35 4.35s-1.95 4.35-4.35 4.35h-.8v2.2h.8c3.61 0 6.55-2.94 6.55-6.55s-2.94-6.55-6.55-6.55H13.2V2H11zm-5.45 6.42A1.1 1.1 0 0 0 4.45 9.5a1.1 1.1 0 0 0 1.1 1.11A1.1 1.1 0 0 0 6.64 9.5a1.1 1.1 0 0 0-1.09-1.08z"/>
                                 </svg>
-                                {isAuthenticatingPi ? 'Memproses...' : 'Login dengan Pi'}
+                                {isAuthenticatingPi ? t('processing') : t('login_with_pi')}
                             </span>
                             {!isAuthenticatingPi && (
                                 <div className="absolute inset-0 h-full w-full bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-0"></div>
@@ -117,7 +139,7 @@ export default function Login({ status, canResetPassword }) {
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                                     </svg>
-                                    <span>Peringatan</span>
+                                    <span>{t('warning')}</span>
                                 </div>
                                 <p className="leading-relaxed">{piAuthError}</p>
                             </div>

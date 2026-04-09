@@ -18,5 +18,11 @@
     "track_order": "Track Order",
     "help": "Help Center",
     "privacy_policy": "Privacy Policy",
-    "contact_us": "Contact Us"
+    "contact_us": "Contact Us",
+    "customer_login": "Customer Login",
+    "buy_anything": "Buy Anything with Pi Network",
+    "access_requirement": "Bliyyan access requires logging in with your official Pi Account.",
+    "login_with_pi": "Login with Pi",
+    "warning": "Warning",
+    "processing": "Processing..."
 }
