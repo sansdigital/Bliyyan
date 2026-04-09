@@ -8,6 +8,7 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
     const [editingAddress, setEditingAddress] = useState(null);
 
     const { data, setData, post, put, delete: destroy, processing, reset, errors } = useForm({
+        code_reg: '',
         label: '',
         recipient_name: '',
         phone_number: '',
@@ -28,14 +29,15 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
     const openEdit = (address) => {
         setEditingAddress(address);
         setData({
-            label: address.label,
+            code_reg: address.code_reg || '',
+            label: address.label || '',
             recipient_name: address.recipient_name,
-            phone_number: address.phone_number,
-            address_line_1: address.address_line_1,
+            phone_number: address.phone_number || '',
+            address_line_1: address.address_line_1 || '',
             address_line_2: address.address_line_2 || '',
-            city: address.city,
+            city: address.city || '',
             province: address.province,
-            postal_code: address.postal_code,
+            postal_code: address.postal_code || '',
             is_default: address.is_default,
         });
         setIsAdding(true);
@@ -95,7 +97,20 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                 <form onSubmit={handleSubmit} className="space-y-4 bg-gray-50 p-6 rounded-2xl border border-gray-100">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2 md:col-span-1">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Label Alamat (e.g. Rumah)</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
+                                CODE REG <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
+                            </label>
+                            <input 
+                                value={data.code_reg}
+                                onChange={e => setData('code_reg', e.target.value)}
+                                className="w-full rounded-lg border-gray-200 text-sm focus:ring-shopee focus:border-shopee"
+                                placeholder="E.g. REG-12345"
+                            />
+                        </div>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
+                                Label Alamat <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
+                            </label>
                             <input 
                                 value={data.label}
                                 onChange={e => setData('label', e.target.value)}
@@ -103,60 +118,76 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                                 placeholder="Rumah / Kantor"
                             />
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2 md:col-span-1">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Nama Penerima</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
+                                Nama Penerima <span className="text-red-500">*</span>
+                            </label>
                             <input 
                                 value={data.recipient_name}
                                 onChange={e => setData('recipient_name', e.target.value)}
-                                className="w-full rounded-lg border-gray-200 text-sm"
+                                className="w-full rounded-lg border-gray-200 text-sm focus:ring-shopee focus:border-shopee"
+                                required
                             />
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2 md:col-span-1">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Nomor Telepon</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
+                                Nomor Telepon <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
+                            </label>
                             <input 
                                 value={data.phone_number}
                                 onChange={e => setData('phone_number', e.target.value)}
-                                className="w-full rounded-lg border-gray-200 text-sm"
-                            />
-                        </div>
-                        <div className="col-span-2 md:col-span-1">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Kode Pos</label>
-                            <input 
-                                value={data.postal_code}
-                                onChange={e => setData('postal_code', e.target.value)}
-                                className="w-full rounded-lg border-gray-200 text-sm"
+                                className="w-full rounded-lg border-gray-200 text-sm focus:ring-shopee focus:border-shopee"
                             />
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Alamat Lengkap</label>
-                        <textarea 
-                            value={data.address_line_1}
-                            onChange={e => setData('address_line_1', e.target.value)}
-                            className="w-full rounded-lg border-gray-200 text-sm"
-                            rows="2"
-                        ></textarea>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
+                                Kode Pos <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
+                            </label>
+                            <input 
+                                value={data.postal_code}
+                                onChange={e => setData('postal_code', e.target.value)}
+                                className="w-full rounded-lg border-gray-200 text-sm focus:ring-shopee focus:border-shopee"
+                            />
+                        </div>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
+                                Alamat Lengkap <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
+                            </label>
+                            <textarea 
+                                value={data.address_line_1}
+                                onChange={e => setData('address_line_1', e.target.value)}
+                                className="w-full rounded-lg border-gray-200 text-sm focus:ring-shopee focus:border-shopee"
+                                rows="1"
+                            ></textarea>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Kota / Kabupaten</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
+                                Kota / Kabupaten <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
+                            </label>
                             <input 
                                 value={data.city}
                                 onChange={e => setData('city', e.target.value)}
-                                className="w-full rounded-lg border-gray-200 text-sm"
+                                className="w-full rounded-lg border-gray-200 text-sm focus:ring-shopee focus:border-shopee"
                             />
                         </div>
                         <div>
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Provinsi</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
+                                Provinsi <span className="text-red-500">*</span>
+                            </label>
                             <input 
                                 value={data.province}
                                 onChange={e => setData('province', e.target.value)}
-                                className="w-full rounded-lg border-gray-200 text-sm"
+                                className="w-full rounded-lg border-gray-200 text-sm focus:ring-shopee focus:border-shopee"
+                                required
                             />
                         </div>
                     </div>
@@ -196,7 +227,11 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                                 </div>
                                 <p className="text-xs text-gray-500 font-medium mb-1">{address.phone_number}</p>
                                 <p className="text-xs text-gray-600 leading-relaxed mb-4 line-clamp-2">
-                                    {address.address_line_1}, {address.city}, {address.province} {address.postal_code}
+                                    {address.address_line_1 ? address.address_line_1 + ', ' : ''}
+                                    {address.city ? address.city + ', ' : ''}
+                                    {address.province}
+                                    {address.postal_code ? ' ' + address.postal_code : ''}
+                                    {address.code_reg ? ` (${address.code_reg})` : ''}
                                 </p>
                                 <div className="flex items-center gap-4">
                                     <button onClick={() => openEdit(address)} className="text-[10px] font-black text-gray-400 hover:text-shopee uppercase tracking-widest transition-colors">Edit</button>

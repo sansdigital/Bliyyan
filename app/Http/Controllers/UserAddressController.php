@@ -11,14 +11,15 @@ class UserAddressController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'label' => 'required|string|max:50',
+            'code_reg' => 'nullable|string|max:100',
+            'label' => 'nullable|string|max:50',
             'recipient_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'address_line_1' => 'required|string',
+            'phone_number' => 'nullable|string|max:20',
+            'address_line_1' => 'nullable|string',
             'address_line_2' => 'nullable|string',
-            'city' => 'required|string|max:100',
+            'city' => 'nullable|string|max:100',
             'province' => 'required|string|max:100',
-            'postal_code' => 'required|string|max:10',
+            'postal_code' => 'nullable|string|max:10',
             'is_default' => 'boolean',
         ]);
 
@@ -41,14 +42,15 @@ class UserAddressController extends Controller
         $this->authorizeOwner($address);
 
         $request->validate([
-            'label' => 'required|string|max:50',
+            'code_reg' => 'nullable|string|max:100',
+            'label' => 'nullable|string|max:50',
             'recipient_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'address_line_1' => 'required|string',
+            'phone_number' => 'nullable|string|max:20',
+            'address_line_1' => 'nullable|string',
             'address_line_2' => 'nullable|string',
-            'city' => 'required|string|max:100',
+            'city' => 'nullable|string|max:100',
             'province' => 'required|string|max:100',
-            'postal_code' => 'required|string|max:10',
+            'postal_code' => 'nullable|string|max:10',
         ]);
 
         $address->update($request->all());
