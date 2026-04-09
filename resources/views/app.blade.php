@@ -10,8 +10,9 @@
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
 
         <!-- Favicon -->
-        <link rel="icon" href="/images/logonet.png" type="image/png">
-        <link rel="icon" href="/favicon.ico" type="image/x-icon">
+        <link rel="icon" type="image/png" href="{{ asset('images/logonet.png') }}?v=2">
+        <link rel="shortcut icon" type="image/png" href="{{ asset('images/logonet.png') }}?v=2">
+        <link rel="apple-touch-icon" href="{{ asset('images/logonet.png') }}?v=2">
 
         <!-- Pi SDK -->
         <script src="https://sdk.minepi.com/pi-sdk.js"></script>
