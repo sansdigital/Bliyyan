@@ -103,7 +103,7 @@ export default function Dashboard({ auth, products, stats }) {
                         <Link href="/" className="text-[10px] text-shopee font-bold uppercase tracking-widest hover:underline">Lihat Mall &rsaquo;</Link>
                     </div>
                     
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 px-2">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4 px-2">
                         {products.map((product) => (
                             <Link key={product.id} href={route('products.show', product.slug)} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md transition-all active:scale-95">
                                 <div className="relative aspect-square bg-gray-50/50 p-4">
