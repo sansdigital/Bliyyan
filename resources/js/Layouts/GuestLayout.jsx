@@ -21,8 +21,9 @@ export default function GuestLayout({ children }) {
                     </div>
                 </div>
 
-                <footer className="py-10 text-center text-[10px] text-gray-400">
-                    <p>&copy; {new Date().getFullYear()} Bliyyan. Powered by Sans Digital.</p>
+                <footer className="py-10 text-center text-[10px] text-gray-400 px-6">
+                    <p className="mb-1">&copy; {new Date().getFullYear()} Bliyyan. Powered by Sans Digital.</p>
+                    <p className="opacity-70">Pi, Pi Network and the Pi logo are trademarks of the Pi Community Company.</p>
                 </footer>
             </div>
         </div>

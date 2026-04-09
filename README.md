@@ -1,6 +1,13 @@
-# Bliyyan Ecommerce Marketplace
+# Bliyyan
 
-Bliyyan is a modern ecommerce marketplace built on the Laravel framework, specifically designed to integrate with the Pi Network ecosystem. This project aims to provide a seamless and secure shopping experience for Pi users, leveraging the Pi Network's decentralized technology and PiOS open-source principles.
+Bliyyan is a modern e-commerce marketplace built on the Laravel framework, specifically designed to integrate with the Pi Network ecosystem. This project aims to provide a seamless and secure shopping experience for Pi users, leveraging the Pi Network's decentralized technology and PiOS open-source principles.
+
+## Project Details
+- **Category**: E-commerce / Marketplace
+- **Description**: A premium marketplace for electronics and digital goods, allowing users to purchase items exclusively using Pi Network cryptocurrency.
+- **Programming Languages**: PHP, JavaScript (React)
+- **Frameworks**: Laravel 12, Inertia.js, Tailwind CSS
+- **Pi Network Integration**: Official Pi SDK for authentication and payments.
 
 ## Features
 - **Pi Network Integration**: Built-in support for Pi payments and authentication.
@@ -8,13 +15,6 @@ Bliyyan is a modern ecommerce marketplace built on the Laravel framework, specif
 - **Real-time Search & Filters**: Faster and more intuitive catalog browsing.
 - **Image Optimization**: Automated processing with high-quality compression (~200KB per image).
 - **Responsive Design**: Consistent experience across all devices.
-
-## Technology Stack
-- **Framework**: Laravel 12
-- **Frontend**: React with Inertia.js
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **Image Processing**: Intervention Image v3
 
 ## PiOS (Pi Open Source)
 This project is part of the **PiOS (Pi Open Source)** initiative. It is developed for and exclusively for use within the official Pi Network ecosystem.
@@ -29,8 +29,10 @@ This project is part of the **PiOS (Pi Open Source)** initiative. It is develope
 7. Compile assets: `npm run build`
 8. Start the server: `php artisan serve`
 
+---
+
+## Disclaimer
+Pi, Pi Network and the Pi logo are trademarks of the Pi Community Company.
+
 ## License
 This application is open-sourced software licensed under the **[PiOS License](LICENSE)**.
-
----
-© 2026 Bliyyan. All rights reserved. Powered by Sans Digital. Pi, Pi Network and the Pi logo are trademarks of the Pi Community Company.

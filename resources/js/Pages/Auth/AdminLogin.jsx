@@ -132,9 +132,12 @@ export default function AdminLogin({ status, canResetPassword }) {
                 </div>
 
                 {/* Footer Copyright */}
-                <div className="mt-10 flex flex-col items-center space-y-6">
-                    <p className="text-xs text-gray-500 font-medium tracking-wide">
-                        © 2026 Bliyyan. Powered by Sans Digital
+                <div className="mt-10 flex flex-col items-center space-y-2 px-6">
+                    <p className="text-[10px] text-gray-500 font-medium tracking-wide text-center">
+                        © {new Date().getFullYear()} Bliyyan. Powered by Sans Digital
+                    </p>
+                    <p className="text-[9px] text-gray-600 opacity-60 text-center leading-tight">
+                        Pi, Pi Network and the Pi logo are trademarks of the Pi Community Company.
                     </p>
                 </div>
             </div>

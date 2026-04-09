@@ -301,8 +301,9 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
             </div>
 
             <footer className="bg-white border-t border-gray-200 mt-20 py-8">
-                <div className="text-center text-gray-400 text-[9px] sm:text-[10px]">
-                    <p>&copy; {new Date().getFullYear()} Bliyyan. Powered by Sans Digital.</p>
+                <div className="text-center text-gray-400 text-[9px] sm:text-[10px] px-6">
+                    <p className="mb-1">&copy; {new Date().getFullYear()} Bliyyan. Powered by Sans Digital.</p>
+                    <p className="opacity-70">Pi, Pi Network and the Pi logo are trademarks of the Pi Community Company.</p>
                 </div>
             </footer>
             
