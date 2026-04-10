@@ -71,13 +71,17 @@ export default function Index({ auth, orders }) {
 
     const handlePrint = (order) => {
         const printWindow = window.open('', '_blank');
+        
+        // Reformat shipping address: move phone number in (brackets) to a new line
+        const formattedAddress = (order.shipping_address || '-').replace(/\s*\(([^)]+)\)/, '\n$1');
+
         const itemsHtml = order.items.map(item => `
             <tr>
-                <td style="padding: 12px; border-bottom: 2px solid #f8fafc;">
+                <td style="padding: 10px 12px; border-bottom: 2px solid #f8fafc;">
                     <div style="font-weight: 800; font-size: 13px; text-transform: uppercase; color: #0f172a;">${item.product?.name}</div>
-                    <div style="font-size: 11px; color: #94a3b8; font-weight: 700; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Qty: ${item.quantity} × π ${Number(item.price)}</div>
+                    <div style="font-size: 10px; color: #94a3b8; font-weight: 700; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.5px;">Qty: ${item.quantity} × π ${Number(item.price)}</div>
                 </td>
-                <td style="padding: 12px; border-bottom: 2px solid #f8fafc; text-align: right; font-weight: 900; color: #0f172a; font-size: 14px;">
+                <td style="padding: 10px 12px; border-bottom: 2px solid #f8fafc; text-align: right; font-weight: 900; color: #0f172a; font-size: 14px;">
                     π ${Number(item.quantity * item.price)}
                 </td>
             </tr>
@@ -89,22 +93,25 @@ export default function Index({ auth, orders }) {
                 <title>Bliyyan Invoice #${String(order.id).padStart(4, '0')}</title>
                 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
                 <style>
-                    body { font-family: 'Outfit', sans-serif; color: #0f172a; margin: 0; padding: 60px; background: white; }
-                    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 4px solid #0f172a; padding-bottom: 40px; margin-bottom: 50px; }
+                    body { font-family: 'Outfit', sans-serif; color: #0f172a; margin: 0; padding: 40px; background: white; }
+                    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 4px solid #0f172a; padding-bottom: 25px; margin-bottom: 30px; }
                     .logo-section { display: flex; align-items: center; gap: 15px; }
-                    .logo-img { height: 60px; width: auto; }
-                    .company-name { font-size: 32px; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: -1.5px; }
-                    .invoice-title { font-size: 48px; font-weight: 900; text-transform: uppercase; text-align: right; margin: 0; line-height: 1; letter-spacing: -2px; }
-                    .invoice-details { text-align: right; font-size: 12px; margin-top: 15px; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
-                    .grid { display: grid; grid-template-cols: 1fr 1fr; gap: 30px; margin-bottom: 50px; }
-                    .section-title { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #cbd5e1; letter-spacing: 2px; margin-bottom: 12px; }
-                    .info-box { background: #f8fafc; padding: 25px; border-radius: 20px; border: 1px solid #f1f5f9; }
-                    .info-text { font-size: 14px; font-weight: 700; line-height: 1.6; white-space: pre-line; color: #334155; }
-                    table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
-                    th { font-size: 10px; font-weight: 900; text-transform: uppercase; color: #94a3b8; text-align: left; padding: 15px; border-bottom: 2px solid #f1f5f9; letter-spacing: 1px; }
-                    .total-box { background: #0f172a !important; -webkit-print-color-adjust: exact; color: white !important; padding: 30px; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-                    .total-label { font-size: 12px; font-weight: 900; text-transform: uppercase; color: #64748b; letter-spacing: 2px; }
-                    .total-amount { font-size: 32px; font-weight: 900; color: #D4AF37 !important; -webkit-print-color-adjust: exact; }
+                    .logo-img { height: 50px; width: auto; }
+                    .company-name { font-size: 28px; font-weight: 900; font-style: italic; text-transform: uppercase; letter-spacing: -1.5px; }
+                    .invoice-title { font-size: 42px; font-weight: 900; text-transform: uppercase; text-align: right; margin: 0; line-height: 0.9; letter-spacing: -2px; }
+                    .invoice-details { text-align: right; font-size: 11px; margin-top: 10px; color: #94a3b8; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+                    .flex-grid { display: flex; gap: 20px; margin-bottom: 30px; }
+                    .info-box { flex: 1; background: #f8fafc; padding: 20px; border-radius: 16px; border: 1px solid #f1f5f9; }
+                    .section-title { font-size: 9px; font-weight: 900; text-transform: uppercase; color: #cbd5e1; letter-spacing: 2px; margin-bottom: 10px; }
+                    .info-text { font-size: 13px; font-weight: 700; line-height: 1.5; white-space: pre-line; color: #334155; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                    th { font-size: 9px; font-weight: 900; text-transform: uppercase; color: #94a3b8; text-align: left; padding: 12px; border-bottom: 2px solid #f1f5f9; letter-spacing: 1px; }
+                    .total-box { background: #0f172a !important; -webkit-print-color-adjust: exact; color: white !important; padding: 25px; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; }
+                    .total-label { font-size: 11px; font-weight: 900; text-transform: uppercase; color: #64748b; letter-spacing: 2px; }
+                    .total-amount { font-size: 28px; font-weight: 900; color: #D4AF37 !important; -webkit-print-color-adjust: exact; }
+                    @media print {
+                        body { padding: 30px; }
+                    }
                 </style>
             </head>
             <body>
@@ -114,7 +121,7 @@ export default function Index({ auth, orders }) {
                             <img src="/images/logonet.png" class="logo-img" />
                             <span class="company-name">Bliyyan</span>
                         </div>
-                        <div style="font-size: 11px; margin-top: 20px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.5;">
+                        <div style="font-size: 10px; margin-top: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.4;">
                             Official Pi Network Marketplace<br>
                             Jakarta, Indonesia<br>
                             www.bliyyan.net
@@ -123,22 +130,22 @@ export default function Index({ auth, orders }) {
                     <div>
                         <h1 class="invoice-title">Invoice</h1>
                         <div class="invoice-details">
-                            <span style="color: #0f172a; font-size: 18px;">#${String(order.id).padStart(4, '0')}</span><br>
+                            <span style="color: #0f172a; font-size: 16px;">#${String(order.id).padStart(4, '0')}</span><br>
                             Date: ${new Date(order.created_at).toLocaleDateString()}<br>
                             Status: ${order.status.toUpperCase()}
                         </div>
                     </div>
                 </div>
 
-                <div class="grid">
+                <div class="flex-grid">
                     <div class="info-box">
                         <div class="section-title">Recipient Info</div>
-                        <div class="info-text" style="color: #0f172a; font-size: 16px;">${order.user?.name}</div>
-                        <div style="font-size: 12px; color: #64748b; margin-top: 5px; font-weight: 700;">${order.user?.email}</div>
+                        <div class="info-text" style="color: #0f172a; font-size: 15px;">${order.user?.name}</div>
+                        <div style="font-size: 11px; color: #64748b; margin-top: 4px; font-weight: 700;">${order.user?.email}</div>
                     </div>
                     <div class="info-box">
                         <div class="section-title">Shipping Address</div>
-                        <div class="info-text">${order.shipping_address || '-'}</div>
+                        <div class="info-text">${formattedAddress}</div>
                     </div>
                 </div>
 
@@ -159,8 +166,8 @@ export default function Index({ auth, orders }) {
                     <span class="total-amount">π ${Number(order.total_price)}</span>
                 </div>
 
-                <div style="margin-top: 80px; text-align: center; border-top: 1px dashed #e2e8f0; padding-top: 30px;">
-                    <p style="font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 3px;">
+                <div style="margin-top: 50px; text-align: center;">
+                    <p style="font-size: 9px; font-weight: 900; color: #94a3b8; text-transform: uppercase; letter-spacing: 3px;">
                         Thank you for your order
                     </p>
                 </div>
