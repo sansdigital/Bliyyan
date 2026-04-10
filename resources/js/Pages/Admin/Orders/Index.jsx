@@ -60,9 +60,9 @@ export default function Index({ auth, orders }) {
                     shipping_courier: courier
                 } : o)
             );
-            toast.success(`Pesanan #${String(orderId).padStart(4, '0')} diperbarui.`);
+            toast.success(`Order #${String(orderId).padStart(4, '0')} updated successfully.`);
         } catch (error) {
-            toast.error('Gagal memperbarui pesanan.');
+            toast.error('Failed to update order.');
         } finally {
             setUpdatingId(null);
             setTrackingModal(null);
@@ -312,7 +312,7 @@ export default function Index({ auth, orders }) {
                                 </div>
                                 <div className="flex justify-between text-[10px] font-bold uppercase tracking-tighter text-emerald-600">
                                     <span>Courier: {viewDetailsModal.shipping_courier}</span>
-                                    <span>No Resi: {viewDetailsModal.tracking_number}</span>
+                                    <span>Tracking No: {viewDetailsModal.tracking_number}</span>
                                 </div>
                             </div>
                         )}

@@ -49,30 +49,30 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
             put(route('profile.addresses.update', editingAddress.id), {
                 onSuccess: () => {
                     setIsAdding(false);
-                    toast.success('Alamat berhasil diperbarui!');
+                    toast.success('Address updated successfully!');
                 }
             });
         } else {
             post(route('profile.addresses.store'), {
                 onSuccess: () => {
                     setIsAdding(false);
-                    toast.success('Alamat baru ditambahkan!');
+                    toast.success('New address added!');
                 }
             });
         }
     };
 
     const handleDelete = (id) => {
-        if (confirm('Hapus alamat ini?')) {
+        if (confirm('Delete this address?')) {
             destroy(route('profile.addresses.destroy', id), {
-                onSuccess: () => toast.success('Alamat dihapus.')
+                onSuccess: () => toast.success('Address deleted.')
             });
         }
     };
 
     const handleSetDefault = (id) => {
         router.patch(route('profile.addresses.set-default', id), {}, {
-            onSuccess: () => toast.success('Alamat utama diubah.')
+            onSuccess: () => toast.success('Default address updated.')
         });
     };
 
@@ -80,15 +80,15 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
         <section className={className}>
             <header className="flex justify-between items-center mb-6">
                 <div>
-                    <h2 className="text-sm font-black text-gray-800 uppercase tracking-widest">Daftar Alamat</h2>
-                    <p className="mt-1 text-xs text-gray-500 font-bold uppercase tracking-tighter">Kelola alamat pengiriman pesanan Pi Anda.</p>
+                    <h2 className="text-sm font-black text-gray-800 uppercase tracking-widest">Address List</h2>
+                    <p className="mt-1 text-xs text-gray-500 font-bold uppercase tracking-tighter">Manage your Pi order shipping addresses.</p>
                 </div>
                 {!isAdding && (
                     <button 
                         onClick={openAdd}
                         className="bg-shopee text-white px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest hover:bg-shopee-hover transition-all shadow-sm active:scale-95"
                     >
-                        Tambah Alamat
+                        Add Address
                     </button>
                 )}
             </header>
@@ -115,7 +115,7 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                                 value={data.label}
                                 onChange={e => setData('label', e.target.value)}
                                 className="w-full rounded-lg border-gray-200 text-sm focus:ring-shopee focus:border-shopee"
-                                placeholder="Rumah / Kantor"
+                                placeholder="Home / Office"
                             />
                         </div>
                     </div>
@@ -123,7 +123,7 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
-                                Nama Penerima <span className="text-red-500">*</span>
+                                Recipient Name <span className="text-red-500">*</span>
                             </label>
                             <input 
                                 value={data.recipient_name}
@@ -134,7 +134,7 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                         </div>
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
-                                Nomor Telepon <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
+                                Phone Number <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
                             </label>
                             <input 
                                 value={data.phone_number}
@@ -147,7 +147,7 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
-                                Kode Pos <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
+                                Postal Code <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
                             </label>
                             <input 
                                 value={data.postal_code}
@@ -157,7 +157,7 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                         </div>
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
-                                Alamat Lengkap <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
+                                Full Address <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
                             </label>
                             <textarea 
                                 value={data.address_line_1}
@@ -171,7 +171,7 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
-                                Kota / Kabupaten <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
+                                City / Regency <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
                             </label>
                             <input 
                                 value={data.city}
@@ -181,7 +181,7 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                         </div>
                         <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
-                                Provinsi <span className="text-red-500">*</span>
+                                Province <span className="text-red-500">*</span>
                             </label>
                             <input 
                                 value={data.province}
@@ -198,14 +198,14 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                             disabled={processing}
                             className="bg-shopee text-white px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-widest shadow-md disabled:bg-gray-300"
                         >
-                            {processing ? 'Menyimpan...' : 'Simpan Alamat'}
+                            {processing ? 'Saving...' : 'Save Address'}
                         </button>
                         <button 
                             type="button"
                             onClick={() => setIsAdding(false)}
                             className="text-xs font-black uppercase tracking-widest text-gray-400 hover:text-gray-600"
                         >
-                            Batal
+                            Cancel
                         </button>
                     </div>
                 </form>
@@ -213,13 +213,13 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {addresses.length === 0 ? (
                         <div className="col-span-2 py-10 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                            <p className="text-gray-400 text-xs font-bold uppercase">Belum ada alamat pengiriman.</p>
+                            <p className="text-gray-400 text-xs font-bold uppercase">No shipping addresses yet.</p>
                         </div>
                     ) : (
                         addresses.map((address) => (
                             <div key={address.id} className={`p-5 rounded-2xl border relative transition-all ${address.is_default ? 'border-shopee bg-shopee/5' : 'border-gray-100 hover:border-gray-200 bg-white'}`}>
                                 {address.is_default && (
-                                    <span className="absolute top-4 right-4 bg-shopee text-white text-[8px] font-black uppercase px-2 py-1 rounded-full shadow-sm">Utama</span>
+                                    <span className="absolute top-4 right-4 bg-shopee text-white text-[8px] font-black uppercase px-2 py-1 rounded-full shadow-sm">Main</span>
                                 )}
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="text-[10px] font-black text-shopee uppercase tracking-widest bg-shopee/10 px-2 py-0.5 rounded">{address.label}</span>
@@ -237,8 +237,8 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                                     <button onClick={() => openEdit(address)} className="text-[10px] font-black text-gray-400 hover:text-shopee uppercase tracking-widest transition-colors">Edit</button>
                                     {!address.is_default && (
                                         <>
-                                            <button onClick={() => handleSetDefault(address.id)} className="text-[10px] font-black text-gray-400 hover:text-shopee uppercase tracking-widest transition-colors">Set Utama</button>
-                                            <button onClick={() => handleDelete(address.id)} className="text-[10px] font-black text-red-400 hover:text-red-600 uppercase tracking-widest transition-colors">Hapus</button>
+                                            <button onClick={() => handleSetDefault(address.id)} className="text-[10px] font-black text-gray-400 hover:text-shopee uppercase tracking-widest transition-colors">Set as Main</button>
+                                            <button onClick={() => handleDelete(address.id)} className="text-[10px] font-black text-red-400 hover:text-red-600 uppercase tracking-widest transition-colors">Delete</button>
                                         </>
                                     )}
                                 </div>

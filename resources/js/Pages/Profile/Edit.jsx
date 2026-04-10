@@ -12,7 +12,7 @@ export default function Edit({ mustVerifyEmail, status, addresses }) {
 
     return (
         <AuthenticatedLayout>
-            <Head title="Profil Saya" />
+            <Head title="My Profile" />
 
             <div className="pb-24 md:pb-10 pt-6 px-4 max-w-4xl mx-auto">
                 {/* Pi Profile Card */}
@@ -37,10 +37,10 @@ export default function Edit({ mustVerifyEmail, status, addresses }) {
                     {/* Badges */}
                     <div className="mt-4 flex gap-2 flex-wrap relative z-10">
                         <span className="text-[10px] font-bold bg-white/20 backdrop-blur px-2 py-1 rounded-full">
-                            {user.is_admin ? '👑 Administrator' : '🛒 Pembeli Pi'}
+                            {user.is_admin ? '👑 Administrator' : '🛒 Pi Pioneer'}
                         </span>
                         <span className="text-[10px] font-bold bg-white/20 backdrop-blur px-2 py-1 rounded-full">
-                            ✅ Terverifikasi Pi Network
+                            ✅ Pi Network Verified
                         </span>
                     </div>
                 </div>
@@ -52,7 +52,7 @@ export default function Edit({ mustVerifyEmail, status, addresses }) {
 
                 {/* Update Name & Email */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Informasi Akun</h3>
+                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Account Information</h3>
                     <UpdateProfileInformationForm
                         mustVerifyEmail={mustVerifyEmail}
                         status={status}
@@ -62,7 +62,7 @@ export default function Edit({ mustVerifyEmail, status, addresses }) {
 
                 {/* Update Password */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Ubah Password</h3>
+                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Update Password</h3>
                     <UpdatePasswordForm className="max-w-xl" />
                 </div>
 

@@ -33,42 +33,42 @@ export default function Create({ auth, categories }) {
 
     return (
         <AdminLayout user={auth.user}>
-            <Head title="Tambah Produk Baru" />
+            <Head title="Add New Product" />
 
             <div className="max-w-4xl">
                 <div className="mb-8">
                     <Link href={route('admin.products.index')} className="text-shopee text-xs font-bold uppercase tracking-widest hover:underline flex items-center gap-1 mb-2">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
-                        Kembali ke Daftar
+                        Back to List
                     </Link>
-                    <h2 className="text-2xl font-black text-gray-800 tracking-tight uppercase">Tambah Produk Baru</h2>
-                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Lengkapi detail produk elektronik yang ingin Anda jual</p>
+                    <h2 className="text-2xl font-black text-gray-800 tracking-tight uppercase">Add New Product</h2>
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Complete the details of the electronic product you want to sell</p>
                 </div>
 
                 <form onSubmit={submit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Name */}
                         <div className="col-span-1">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nama Produk</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Product Name</label>
                             <input 
                                 type="text"
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
                                 className="w-full rounded-xl border-gray-200 focus:border-shopee focus:ring-shopee transition-all"
-                                placeholder="Contoh: iPhone 15 Pro Max"
+                                placeholder="Example: iPhone 15 Pro Max"
                             />
                             {errors.name && <div className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.name}</div>}
                         </div>
 
                         {/* Category */}
                         <div className="col-span-1">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Kategori</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Category</label>
                             <select 
                                 value={data.category_id}
                                 onChange={(e) => setData('category_id', e.target.value)}
                                 className="w-full rounded-xl border-gray-200 focus:border-shopee focus:ring-shopee transition-all"
                             >
-                                <option value="">Pilih Kategori</option>
+                                <option value="">Select Category</option>
                                 {categories.map((category) => (
                                     <option key={category.id} value={category.id}>{category.name}</option>
                                 ))}
@@ -78,7 +78,7 @@ export default function Create({ auth, categories }) {
 
                         {/* Price */}
                         <div className="col-span-1">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Harga (π Pi)</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Price (π Pi)</label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-shopee font-black italic">π</div>
                                 <input 
@@ -95,7 +95,7 @@ export default function Create({ auth, categories }) {
 
                         {/* Stock */}
                         <div className="col-span-1">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Stok Unit</label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Unit Stock</label>
                             <input 
                                 type="number"
                                 value={data.stock}
@@ -109,7 +109,7 @@ export default function Create({ auth, categories }) {
 
                     {/* Image Upload */}
                     <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Foto Produk</label>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Product Image</label>
                         <div className="flex items-center gap-6">
                             {preview ? (
                                 <img src={preview} alt="Preview" className="w-24 h-24 object-cover rounded-lg border border-gray-200" />
@@ -130,13 +130,13 @@ export default function Create({ auth, categories }) {
 
                     {/* Description */}
                     <div>
-                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Deskripsi Produk</label>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Product Description</label>
                         <textarea 
                             rows="5"
                             value={data.description}
                             onChange={(e) => setData('description', e.target.value)}
                             className="w-full rounded-xl border-gray-200 focus:border-shopee focus:ring-shopee transition-all"
-                            placeholder="Jelaskan spesifikasi dan kondisi produk..."
+                            placeholder="Describe the specifications and condition of the product..."
                         ></textarea>
                         {errors.description && <div className="text-red-500 text-[10px] mt-1 font-bold uppercase">{errors.description}</div>}
                     </div>
@@ -150,7 +150,7 @@ export default function Create({ auth, categories }) {
                                 onChange={(e) => setData('is_active', e.target.checked)}
                                 className="w-5 h-5 rounded border-gray-300 text-shopee focus:ring-shopee"
                             />
-                            <span className="text-xs font-bold text-gray-600 uppercase tracking-widest group-hover:text-shopee">Aktifkan Produk</span>
+                            <span className="text-xs font-bold text-gray-600 uppercase tracking-widest group-hover:text-shopee">Activate Product</span>
                         </label>
                         <label className="flex items-center gap-3 cursor-pointer group">
                             <input 
@@ -159,7 +159,7 @@ export default function Create({ auth, categories }) {
                                 onChange={(e) => setData('is_featured', e.target.checked)}
                                 className="w-5 h-5 rounded border-gray-300 text-shopee focus:ring-shopee"
                             />
-                            <span className="text-xs font-bold text-gray-600 uppercase tracking-widest group-hover:text-shopee">Unggulan (Mall)</span>
+                            <span className="text-xs font-bold text-gray-600 uppercase tracking-widest group-hover:text-shopee">Featured (Mall)</span>
                         </label>
                     </div>
 
@@ -169,7 +169,7 @@ export default function Create({ auth, categories }) {
                             disabled={processing}
                             className="bg-shopee hover:bg-shopee-hover text-white px-10 py-4 rounded-xl font-bold text-sm transition-all shadow-lg shadow-shopee/20 disabled:bg-gray-300"
                         >
-                            Simpan Produk
+                            Save Product
                         </button>
                     </div>
                 </form>

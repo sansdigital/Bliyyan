@@ -12,20 +12,20 @@ export default function Index({ auth, wishlistItems }) {
         try {
             await axios.post(route('wishlist.toggle'), { product_id: productId });
             setItems(items.filter(item => item.id !== id));
-            toast.success("Produk dihapus dari favorit.");
+            toast.success("Product removed from wishlist.");
         } catch (error) {
-            toast.error("Gagal menghapus produk.");
+            toast.error("Failed to remove product.");
         }
     };
 
     return (
         <AuthenticatedLayout user={auth.user}>
-            <Head title="Favorit Saya" />
+            <Head title="My Wishlist" />
 
             <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                 <div className="mb-8">
-                    <h2 className="text-2xl font-black text-gray-800 tracking-tight uppercase border-l-4 border-shopee pl-4">Favorit Saya</h2>
-                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1 ml-4">Produk yang Anda simpan untuk dibeli nanti</p>
+                    <h2 className="text-2xl font-black text-gray-800 tracking-tight uppercase border-l-4 border-shopee pl-4">My Wishlist</h2>
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1 ml-4">Products you've saved to buy later</p>
                 </div>
 
                 {items.length === 0 ? (
@@ -35,13 +35,13 @@ export default function Index({ auth, wishlistItems }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                             </svg>
                         </div>
-                        <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase">Wishlist Kosong</h3>
-                        <p className="text-gray-500 text-sm mb-8">Anda belum menyimpan produk apapun ke favorit.</p>
+                        <h3 className="text-lg font-bold text-gray-800 mb-2 uppercase">Empty Wishlist</h3>
+                        <p className="text-gray-500 text-sm mb-8">You haven't saved any products to your wishlist yet.</p>
                         <Link 
                             href={route('dashboard')}
                             className="inline-block bg-shopee text-white px-8 py-3 rounded-sm font-bold uppercase text-xs tracking-widest hover:bg-shopee-hover transition-colors shadow-lg shadow-shopee/20"
                         >
-                            Mulai Belanja
+                            Start Shopping
                         </Link>
                     </div>
                 ) : (
@@ -73,7 +73,7 @@ export default function Index({ auth, wishlistItems }) {
                                 <button 
                                     onClick={() => removeFromWishlist(item.id, item.product_id)}
                                     className="absolute top-1 right-1 p-1.5 rounded-full bg-white/90 backdrop-blur-sm shadow-sm md:opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 text-red-500"
-                                    title="Hapus dari Favorit"
+                                    title="Remove from Wishlist"
                                 >
                                     <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />

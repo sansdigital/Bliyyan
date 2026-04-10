@@ -221,7 +221,7 @@ export default function Show({ auth, product, can_review, active_order_id, addre
                                     className="flex-1 bg-slate-800 text-white px-6 py-3 rounded-sm font-bold uppercase transition-all flex items-center justify-center gap-2 hover:bg-slate-700 active:scale-95 shadow-lg"
                                 >
                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                    Kelola Data Produk
+                                    Manage Product Data
                                 </Link>
                             ) : (
                                 <>
@@ -327,7 +327,7 @@ export default function Show({ auth, product, can_review, active_order_id, addre
                                             ))}
                                         </div>
                                         <p className="mt-2 text-sm text-gray-700 leading-relaxed italic">"{review.comment}"</p>
-                                        <div className="mt-2 text-[10px] text-gray-400 font-medium">{new Date(review.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                                        <div className="mt-2 text-[10px] text-gray-400 font-medium">{new Date(review.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
                                     </div>
                                 </div>
                             ))

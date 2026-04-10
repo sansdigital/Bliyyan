@@ -119,7 +119,6 @@ export default function Index({ orders }) {
                         })}
                     </div>
                 )}
-            </div>
         </AuthenticatedLayout>
     );
 }

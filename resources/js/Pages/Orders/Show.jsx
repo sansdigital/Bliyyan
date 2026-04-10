@@ -4,12 +4,12 @@ import { Head, Link, router } from '@inertiajs/react';
 import axios from 'axios';
 
 const statusConfig = {
-    pending:   { label: 'Menunggu Pembayaran', color: 'text-yellow-600 bg-yellow-50 border-yellow-200', icon: '⏳' },
-    paid:      { label: 'Pembayaran Berhasil',  color: 'text-green-600 bg-green-50 border-green-200',  icon: '✅' },
-    cancelled: { label: 'Dibatalkan',           color: 'text-red-500 bg-red-50 border-red-200',        icon: '❌' },
-    processing:{ label: 'Sedang Diproses',      color: 'text-blue-600 bg-blue-50 border-blue-200',     icon: '⚙️' },
-    shipped:   { label: 'Dikirim',              color: 'text-purple-600 bg-purple-50 border-purple-200', icon: '🚚' },
-    delivered: { label: 'Selesai',              color: 'text-gray-600 bg-gray-50 border-gray-200',     icon: '📦' },
+    pending:   { label: 'Awaiting Payment', color: 'text-amber-600 bg-amber-50 border-amber-100', icon: '⏳' },
+    paid:      { label: 'Payment Successful',  color: 'text-emerald-600 bg-emerald-50 border-emerald-100',  icon: '✅' },
+    cancelled: { label: 'Cancelled',           color: 'text-rose-500 bg-rose-50 border-rose-100',        icon: '❌' },
+    processing:{ label: 'Processing',          color: 'text-sky-600 bg-sky-50 border-sky-100',     icon: '⚙️' },
+    shipped:   { label: 'Shipped',             color: 'text-indigo-600 bg-indigo-50 border-indigo-100', icon: '🚚' },
+    delivered: { label: 'Delivered',           color: 'text-slate-600 bg-slate-50 border-slate-100',     icon: '📦' },
 };
 
 export default function Show({ order }) {
@@ -51,18 +51,18 @@ export default function Show({ order }) {
                 },
                 onCancel: async (paymentId) => {
                     await axios.post(route('pi.cancel'), { paymentId });
-                    setLoading(false);
+                    setPaying(false);
                 },
                 onError: (error) => {
                     console.error('Pi Payment Error:', error);
                     setPayError('Payment failed: ' + (error?.message || 'Please try again.'));
-                    setLoading(false);
+                    setPaying(false);
                 },
             });
         } catch (err) {
             console.error(err);
             setPayError(err.message || 'Failed to initiate Pi payment.');
-            setLoading(false);
+            setPaying(false);
         }
     };
 
@@ -163,11 +163,11 @@ export default function Show({ order }) {
                             </Link>
                             {order.status === 'pending' && (
                                 <button
-                                    onClick={handlePayment}
-                                    disabled={loading}
+                                    onClick={handlePay}
+                                    disabled={paying}
                                     className="bg-shopee text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-shopee-hover transition-all active:scale-95 shadow-lg shadow-shopee/20 disabled:bg-gray-300"
                                 >
-                                    {loading ? 'Processing...' : 'Pay Now'}
+                                    {paying ? 'Processing...' : 'Pay Now'}
                                 </button>
                             )}
                             <Link href={route('dashboard')} className="bg-slate-800 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all active:scale-95 shadow-lg shadow-slate-800/20">
