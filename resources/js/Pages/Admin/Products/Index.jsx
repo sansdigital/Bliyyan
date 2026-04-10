@@ -303,7 +303,7 @@ export default function Index({ auth, products, categories, category_groups, fil
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex items-center justify-center gap-1 text-slate-900 font-black text-sm">
                                                 <span className="italic tracking-tighter text-shopee-gold pb-0.5">π</span>
-                                                {Number(product.price).toFixed(4)}
+                                                {Number(product.price)}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">

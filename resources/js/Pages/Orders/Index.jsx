@@ -60,10 +60,10 @@ export default function Index({ orders }) {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-black text-slate-800 truncate">{item.product?.name || 'Product unavailable'}</p>
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase mt-1 tracking-tighter">{item.quantity} x π {Number(item.price).toFixed(4)}</p>
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase mt-1 tracking-tighter">{item.quantity} x π {Number(item.price)}</p>
                                                 </div>
                                                 <p className="text-sm font-black text-shopee flex-shrink-0">
-                                                    π {Number(item.price * item.quantity).toFixed(4)}
+                                                    π {Number(item.price * item.quantity)}
                                                 </p>
                                             </div>
                                         ))}
@@ -94,7 +94,7 @@ export default function Index({ orders }) {
                                     {/* Order Footer */}
                                     <div className="flex items-center justify-between px-6 py-4 border-t border-gray-50 bg-gray-50/20">
                                         <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                            Total: <span className="font-black text-shopee text-xl ml-2 normal-case">π {Number(order.total_price).toFixed(4)}</span>
+                                            Total: <span className="font-black text-shopee text-xl ml-2 normal-case">π {Number(order.total_price)}</span>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             {order.status === 'pending' && (

@@ -120,7 +120,7 @@ export default function Dashboard({ auth, products, stats }) {
                                     <h4 className="text-xs font-bold text-gray-800 line-clamp-2 h-8 leading-snug group-hover:text-shopee transition-colors">{product.name}</h4>
                                     <div className="mt-2 flex items-baseline gap-0.5 text-shopee font-black">
                                         <span className="text-[10px] italic">π</span>
-                                        <span className="text-sm">{Number(product.price).toFixed(2)}</span>
+                                        <span className="text-sm">{Number(product.price)}</span>
                                     </div>
                                     <div className="mt-1 flex items-center gap-1">
                                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{product.category?.name}</span>

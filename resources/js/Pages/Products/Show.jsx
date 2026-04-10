@@ -170,7 +170,7 @@ export default function Show({ auth, product, can_review, active_order_id, addre
                         <div className="bg-gray-50 p-4 mb-8 rounded-sm">
                             <div className="flex items-baseline gap-2 text-shopee">
                                 <span className="text-sm">π</span>
-                                <span className="text-3xl font-bold">{Number(product.price).toFixed(4)}</span>
+                                <span className="text-3xl font-bold">{Number(product.price)}</span>
                             </div>
                         </div>
 

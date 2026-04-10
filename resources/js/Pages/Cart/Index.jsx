@@ -165,7 +165,7 @@ export default function Index({ auth, items, addresses = [] }) {
                                     <div className="w-full md:w-auto flex justify-between md:contents">
                                         <span className="md:hidden text-[10px] text-gray-400 font-black uppercase tracking-tighter">Price</span>
                                         <div className="text-center text-sm font-black text-slate-600">
-                                            π {Number(item.product.price).toFixed(2)}
+                                            π {Number(item.product.price)}
                                         </div>
                                     </div>
                                     <div className="w-full md:w-auto flex justify-between md:contents">
@@ -179,7 +179,7 @@ export default function Index({ auth, items, addresses = [] }) {
                                     <div className="w-full md:w-auto flex justify-between md:contents">
                                         <span className="md:hidden text-[10px] text-gray-400 font-black uppercase tracking-tighter">Total</span>
                                         <div className="text-right text-shopee font-black">
-                                            π {Number(item.product.price * item.quantity).toFixed(2)}
+                                            π {Number(item.product.price * item.quantity)}
                                         </div>
                                     </div>
                                 </div>
@@ -220,12 +220,12 @@ export default function Index({ auth, items, addresses = [] }) {
                         <div className="flex flex-col gap-2 mb-2 border-b border-gray-50 pb-2 md:hidden">
                             <div className="flex justify-between text-[10px] text-gray-400 font-black uppercase tracking-tighter">
                                 <span>Subtotal</span>
-                                <span>π {subtotal.toFixed(4)}</span>
+                                <span>π {Number(subtotal)}</span>
                             </div>
                             {discount > 0 && (
                                 <div className="flex justify-between text-[10px] text-green-600 font-black uppercase tracking-tighter">
                                     <span>Voucher Savings</span>
-                                    <span>- π {discount.toFixed(4)}</span>
+                                    <span>- π {Number(discount)}</span>
                                 </div>
                             )}
                         </div>
@@ -233,12 +233,12 @@ export default function Index({ auth, items, addresses = [] }) {
                         <div className="flex items-center justify-end gap-4 md:gap-10">
                             <div className="text-right">
                                 <div className="hidden md:block mb-1">
-                                    <span className="text-[10px] text-gray-400 font-black uppercase tracking-tighter mr-4">Subtotal: π {subtotal.toFixed(4)}</span>
-                                    {discount > 0 && <span className="text-[10px] text-green-600 font-black uppercase tracking-tighter">Savings: -π {discount.toFixed(4)}</span>}
+                                    <span className="text-[10px] text-gray-400 font-black uppercase tracking-tighter mr-4">Subtotal: π {Number(subtotal)}</span>
+                                    {discount > 0 && <span className="text-[10px] text-green-600 font-black uppercase tracking-tighter">Savings: -π {Number(discount)}</span>}
                                 </div>
                                 <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
                                     <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Total Payment</span>
-                                    <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tighter">π {total.toFixed(4)}</span>
+                                    <span className="text-2xl sm:text-3xl font-black text-slate-800 tracking-tighter">π {Number(total)}</span>
                                 </div>
                             </div>
                             <button 

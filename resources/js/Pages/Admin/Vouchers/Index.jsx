@@ -189,7 +189,7 @@ export default function Index({ auth, vouchers }) {
                                                     {v.discount_type === 'percent' ? (
                                                         <><Percent className="w-3 h-3 text-emerald-500" /> {v.discount_value}%</>
                                                     ) : (
-                                                        <><span className="text-shopee-gold italic">π</span> {Number(v.discount_value).toFixed(2)}</>
+                                                        <><span className="text-shopee-gold italic">π</span> {Number(v.discount_value)}</>
                                                     )}
                                                 </span>
                                                 <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{v.discount_type === 'percent' ? 'Percentage' : 'Fixed Amount'}</span>
@@ -197,7 +197,7 @@ export default function Index({ auth, vouchers }) {
                                         </td>
                                         <td className="px-6 py-4 text-center text-sm font-bold text-slate-600">
                                             <div className="flex items-center justify-center gap-1">
-                                                <span className="text-shopee-gold italic">π</span> {Number(v.min_purchase).toFixed(2)}
+                                                <span className="text-shopee-gold italic">π</span> {Number(v.min_purchase)}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

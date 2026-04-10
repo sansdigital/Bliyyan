@@ -189,7 +189,7 @@ export default function Index({ auth, orders }) {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="text-sm font-black text-slate-900 tracking-tight">π {Number(order.total_price).toFixed(4)}</span>
+                                                <span className="text-sm font-black text-slate-900 tracking-tight">π {Number(order.total_price)}</span>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`inline-block px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border transition-colors ${statusConf.color}`}>
@@ -292,14 +292,14 @@ export default function Index({ auth, orders }) {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs font-black text-slate-900">π {Number(item.quantity * item.price).toFixed(4)}</p>
+                                            <p className="text-xs font-black text-slate-900">π {Number(item.quantity * item.price)}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                             <div className="p-4 bg-slate-900 flex justify-between items-center text-white">
                                 <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Total Amount</span>
-                                <span className="text-xl font-black text-shopee-gold">π {Number(viewDetailsModal.total_price).toFixed(4)}</span>
+                                <span className="text-xl font-black text-shopee-gold">π {Number(viewDetailsModal.total_price)}</span>
                             </div>
                         </div>
 

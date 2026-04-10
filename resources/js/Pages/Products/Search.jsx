@@ -25,7 +25,7 @@ function ProductCard({ product }) {
                     </div>
                     <div className="flex items-baseline gap-0.5 text-shopee font-bold">
                         <span className="text-[10px]">π</span>
-                        <span className="text-sm font-black">{Number(product.price).toFixed(2)}</span>
+                        <span className="text-sm font-black">{Number(product.price)}</span>
                     </div>
                     <div className="mt-1 text-[10px] text-gray-400">Stok: {product.stock}</div>
                 </div>

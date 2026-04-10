@@ -48,7 +48,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
     const statCards = [
         {
             label: 'Total Pi Collected',
-            value: `π ${Number(stats.total_pi_earned).toFixed(4)}`,
+            value: `π ${Number(stats.total_pi_earned)}`,
             icon: Coins,
             color: 'text-shopee-gold',
             bg: 'bg-shopee-gold/10',
@@ -177,7 +177,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                                 <div>
                                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Today's Sales</p>
                                     <div className="flex items-end gap-2">
-                                        <h2 className="text-3xl font-black text-shopee-gold tracking-tighter">π {Number(stats.today_sales).toFixed(4)}</h2>
+                                        <h2 className="text-3xl font-black text-shopee-gold tracking-tighter">π {Number(stats.today_sales)}</h2>
                                         {isSalesUp && <ArrowUpRight className="w-5 h-5 text-green-400 mb-1" />}
                                     </div>
                                 </div>
@@ -185,7 +185,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                                 <div className="p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Yesterday</span>
-                                        <span className="text-xs font-bold text-white/80 tracking-tighter">π {Number(stats.yesterday_sales).toFixed(4)}</span>
+                                        <span className="text-xs font-bold text-white/80 tracking-tighter">π {Number(stats.yesterday_sales)}</span>
                                     </div>
                                     <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
                                         <div
@@ -253,7 +253,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-sm font-black text-slate-900 tracking-tight">π {Number(order.total_price).toFixed(4)}</div>
+                                            <div className="text-sm font-black text-slate-900 tracking-tight">π {Number(order.total_price)}</div>
                                             <div className={`inline-block px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest mt-1 ${STATUS_COLOR[order.status] || 'bg-gray-100 text-gray-600'}`}>
                                                 {order.status}
                                             </div>

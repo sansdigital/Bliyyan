@@ -130,12 +130,12 @@ export default function Show({ order }) {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-black text-slate-800 truncate">{item.product?.name || 'Product unavailable'}</p>
-                                        <p className="md:hidden text-xs text-gray-400 mt-1 uppercase tracking-tighter font-bold">{item.quantity} x π {Number(item.price).toFixed(4)}</p>
+                                        <p className="md:hidden text-xs text-gray-400 mt-1 uppercase tracking-tighter font-bold">{item.quantity} x π {Number(item.price)}</p>
                                     </div>
                                 </div>
-                                <div className="hidden md:block text-center text-sm font-black text-slate-600">π {Number(item.price).toFixed(4)}</div>
+                                <div className="hidden md:block text-center text-sm font-black text-slate-600">π {Number(item.price)}</div>
                                 <div className="hidden md:block text-center text-sm font-black text-slate-800">{item.quantity}</div>
-                                <div className="text-right text-sm font-black text-shopee">π {Number(item.price * item.quantity).toFixed(4)}</div>
+                                <div className="text-right text-sm font-black text-shopee">π {Number(item.price * item.quantity)}</div>
                             </div>
                         ))}
                     </div>
@@ -145,11 +145,11 @@ export default function Show({ order }) {
                     <div className="p-8 space-y-4 border-b border-gray-50">
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-400 font-black uppercase text-[10px] tracking-widest">Order Subtotal</span>
-                            <span className="font-black text-slate-800">π {Number(order.total_price).toFixed(4)}</span>
+                            <span className="font-black text-slate-800">π {Number(order.total_price)}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-[10px] font-black uppercase text-slate-800 tracking-widest">Total Payment</span>
-                            <span className="text-2xl font-black text-shopee">π {Number(order.total_price).toFixed(4)}</span>
+                            <span className="text-2xl font-black text-shopee">π {Number(order.total_price)}</span>
                         </div>
                     </div>
                     <div className="p-8 bg-gray-50/50 flex flex-col sm:flex-row justify-between gap-6 sm:items-center">

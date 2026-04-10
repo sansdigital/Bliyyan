@@ -132,7 +132,7 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                                         <p className="opacity-80 max-w-sm text-[10px] line-clamp-2 mt-0.5 font-medium pr-2">{item.description}</p>
                                         <div className="mt-3 flex items-baseline gap-1 bg-white/70 backdrop-blur-sm w-fit px-3 py-1.5 rounded-sm shadow-sm border border-white/50">
                                             <span className="text-xs italic font-black text-slate-900 opacity-70">π</span>
-                                            <span className="text-xl font-black tracking-tighter text-slate-900">{Number(item.price).toFixed(2)}</span>
+                                            <span className="text-xl font-black tracking-tighter text-slate-900">{Number(item.price)}</span>
                                         </div>
                                     </div>
                                     
@@ -268,7 +268,7 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                                     <div className="mt-auto">
                                         <div className="flex items-baseline gap-0.5 text-shopee font-bold">
                                             <span className="text-[10px] sm:text-xs italic tracking-tighter">π</span>
-                                            <span className="text-xs sm:text-base font-black">{Number(product.price).toFixed(2)}</span>
+                                            <span className="text-xs sm:text-base font-black">{Number(product.price)}</span>
                                         </div>
                                         <div className="mt-1 text-[9px] text-gray-400 font-medium">
                                             North Jakarta

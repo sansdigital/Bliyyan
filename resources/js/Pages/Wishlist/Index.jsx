@@ -63,7 +63,7 @@ export default function Index({ auth, wishlistItems }) {
                                         <div className="mt-auto flex items-center justify-between">
                                             <div className="flex items-baseline gap-0.5 text-shopee font-bold">
                                                 <span className="text-[10px] italic tracking-tighter">π</span>
-                                                <span className="text-sm font-black">{Number(item.product.price).toFixed(2)}</span>
+                                                <span className="text-sm font-black">{Number(item.product.price)}</span>
                                             </div>
                                         </div>
                                     </div>

@@ -36,7 +36,7 @@ export default function Index({ auth, chart_data, top_products, status_stats, re
     const stats = [
         { 
             label: "This Month Revenue", 
-            value: `π ${revenue.this_month.toFixed(4)}`, 
+            value: `π ${Number(revenue.this_month)}`, 
             sub: `${monthlyChange >= 0 ? '+' : ''}${monthlyChange}% vs last month`,
             icon: DollarSign,
             color: "text-emerald-500",
@@ -45,7 +45,7 @@ export default function Index({ auth, chart_data, top_products, status_stats, re
         },
         { 
             label: "Total Revenue (All Time)", 
-            value: `π ${revenue.total_all_time.toFixed(4)}`, 
+            value: `π ${Number(revenue.total_all_time)}`, 
             sub: "Paid orders only",
             icon: Target,
             color: "text-shopee-gold",
@@ -253,7 +253,7 @@ export default function Index({ auth, chart_data, top_products, status_stats, re
                                         </td>
                                         <td className="px-8 py-4 text-right">
                                             <div className="flex flex-col items-end">
-                                                <span className="text-shopee-gold font-black text-base italic tracking-tight">π {Number(p.total_revenue).toFixed(4)}</span>
+                                                <span className="text-shopee-gold font-black text-base italic tracking-tight">π {Number(p.total_revenue)}</span>
                                                 <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Successful</span>
                                             </div>
                                         </td>
