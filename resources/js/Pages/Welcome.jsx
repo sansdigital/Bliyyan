@@ -6,11 +6,11 @@ import { useToast } from '@/Components/Toast';
 import { useTranslation } from 'react-i18next';
 
 export default function Welcome({ auth, products, categories, groups = [], wishlist_ids = [] }) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
     const toast = useToast();
     const [searchInput, setSearchInput] = useState('');
     const [localWishlist, setLocalWishlist] = useState(wishlist_ids);
-    const [activeGroup, setActiveGroup] = useState(groups[0]?.key || 'bliyyan'); // Default ke pilar pertama
+    const [activeGroup, setActiveGroup] = useState(groups[0]?.key || 'bliyyan');
     
     // Auto Slider Logic (Top Sellers / Featured / Newest fallback)
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -31,16 +31,12 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
         if (searchInput.trim()) router.get(route('products.search'), { q: searchInput.trim() });
     };
 
-    const changeLanguage = (lng) => {
-        i18n.changeLanguage(lng);
-        toast.info(`Bahasa diubah ke ${lng === 'id' ? 'Indonesia' : 'English'}`);
-    };
 
     const toggleWishlist = async (e, productId) => {
         e.preventDefault();
         e.stopPropagation();
         if (!auth.user) {
-            toast.warning("Silakan login untuk menyimpan produk ke favorit.");
+            toast.warning("Please login to save products to favorites.");
             return;
         }
 
@@ -48,13 +44,13 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
             const response = await axios.post(route('wishlist.toggle'), { product_id: productId });
             if (response.data.status === 'added') {
                 setLocalWishlist([...localWishlist, productId]);
-                toast.success("Produk disimpan ke wishlist!");
+                toast.success("Product saved to wishlist!");
             } else {
                 setLocalWishlist(localWishlist.filter(id => id !== productId));
-                toast.success("Produk dihapus dari wishlist.");
+                toast.success("Product removed from wishlist.");
             }
         } catch (error) {
-            toast.error("Gagal mengubah wishlist.");
+            toast.error("Failed to update wishlist.");
         }
     };
 
@@ -62,19 +58,19 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
         <div className="min-h-screen bg-zinc-100 flex justify-center w-full font-sans">
             <div className="w-full max-w-[480px] bg-shopee-bg min-h-screen relative shadow-2xl flex flex-col overflow-x-hidden pb-[72px]">
             <Head>
-                <title>Bliyyan - Belanja Elektronik dengan Pi Network</title>
-                <meta name="description" content="Bliyyan adalah marketplace nomor 1 untuk belanja barang-barang premium (iPhone, MacBook, Laptop) menggunakan mata uang Pi Network secara aman." />
+                <title>Bliyyan - Shop Electronics with Pi Network</title>
+                <meta name="description" content="Bliyyan is the #1 marketplace for premium electronics (iPhone, MacBook, Laptops) using Pi Network currency securely." />
                 
                 {/* OpenGraph Tags */}
-                <meta property="og:title" content="Bliyyan Marketplace - Belanja dengan Pi" />
-                <meta property="og:description" content="Dapatkan barang impian Anda menggunakan Pi Network. iPhone, MacBook, dan gadget lainnya tersedia di Bliyyan." />
+                <meta property="og:title" content="Bliyyan Marketplace - Shop with Pi" />
+                <meta property="og:description" content="Get your dream items using Pi Network. iPhone, MacBook, and other gadgets available at Bliyyan." />
                 <meta property="og:image" content={`${window.location.origin}/images/og-image.png`} />
                 <meta property="og:type" content="website" />
                 
                 {/* Twitter Tags */}
                 <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Bliyyan - Blanja Premium dengan Pi" />
-                <meta name="twitter:description" content="Marketplace Pi Network pertama dan terpercaya di Indonesia." />
+                <meta name="twitter:title" content="Bliyyan - Premium Shopping with Pi" />
+                <meta name="twitter:description" content="The first and most trusted Pi Network marketplace in Indonesia." />
             </Head>
 
             {/* Top Navigation */}
@@ -91,23 +87,8 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                             
 
 
-                        {/* Guest Actions & Language */}
+                        {/* Guest Actions */}
                         <div className="flex items-center gap-4">
-                            {/* Language Switcher */}
-                            <div className="flex items-center bg-white/10 rounded-sm p-1">
-                                <button 
-                                    onClick={() => changeLanguage('id')}
-                                    className={`px-1.5 py-0.5 text-[9px] font-black rounded-sm transition-colors ${i18n.language === 'id' ? 'bg-shopee-gold text-shopee' : 'text-white hover:bg-white/10'}`}
-                                >
-                                    ID
-                                </button>
-                                <button 
-                                    onClick={() => changeLanguage('en')}
-                                    className={`px-1.5 py-0.5 text-[9px] font-black rounded-sm transition-colors ${i18n.language === 'en' ? 'bg-shopee-gold text-shopee' : 'text-white hover:bg-white/10'}`}
-                                >
-                                    EN
-                                </button>
-                            </div>
 
                             {auth.user ? (
                                 <></>
@@ -142,7 +123,7 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                                     <div className="relative z-10 flex flex-col justify-center h-full w-[55%]">
                                         <div className="flex items-center gap-2 mb-1.5">
                                             <span className="bg-slate-900 text-shopee-gold text-[8px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-widest inline-block shadow-sm">
-                                                Penjualan Terlaris
+                                                Top Selling
                                             </span>
                                         </div>
                                         <h2 className="text-lg font-black mb-0.5 leading-tight uppercase tracking-tighter line-clamp-2 text-slate-900 drop-shadow-md">
@@ -168,8 +149,8 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                         ) : (
                             <div className="relative z-10 p-5 sm:p-8">
                                 <span className="bg-slate-900 text-shopee-gold text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-sm uppercase tracking-wider mb-2 sm:mb-4 inline-block">{t('flash_sale')}</span>
-                                <h2 className="text-2xl sm:text-5xl font-black mb-1 sm:mb-2 leading-tight uppercase italic tracking-tighter">Elektronik <br/>{t('pay_with_pi')}</h2>
-                                <p className="opacity-90 max-w-md text-[10px] sm:text-base line-clamp-2">Eksklusif di Bliyyan.</p>
+                                <h2 className="text-2xl sm:text-5xl font-black mb-1 sm:mb-2 leading-tight uppercase italic tracking-tighter">Electronics <br/>{t('pay_with_pi')}</h2>
+                                <p className="opacity-90 max-w-md text-[10px] sm:text-base line-clamp-2">Exclusive on Bliyyan.</p>
                             </div>
                         )}
 
@@ -244,9 +225,9 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                 <div className="mt-10">
                     <div className="flex justify-between items-end mb-6">
                         <div>
-                            <span className="text-[10px] font-black uppercase text-shopee tracking-[0.3em] mb-1 block">Rekomendasi</span>
+                            <span className="text-[10px] font-black uppercase text-shopee tracking-[0.3em] mb-1 block">Recommended</span>
                             <h3 className="text-lg font-black text-gray-800 uppercase tracking-tighter border-l-4 border-shopee pl-3">
-                                {groups.find(g => g.key === activeGroup)?.name || 'Pilihan Terbaik'}
+                                {groups.find(g => g.key === activeGroup)?.name || 'Top Choice'}
                             </h3>
                         </div>
                         <Link href={route('products.search')} className="text-shopee text-[10px] font-bold hover:underline py-1 uppercase tracking-widest">{t('view_all')} &rsaquo;</Link>
@@ -290,7 +271,7 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                                             <span className="text-xs sm:text-base font-black">{Number(product.price).toFixed(2)}</span>
                                         </div>
                                         <div className="mt-1 text-[9px] text-gray-400 font-medium">
-                                            Jakarta Utara
+                                            North Jakarta
                                         </div>
                                     </div>
                                 </div>

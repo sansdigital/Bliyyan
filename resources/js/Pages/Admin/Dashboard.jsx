@@ -47,7 +47,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
 
     const statCards = [
         {
-            label: 'Total Pi Terkumpul',
+            label: 'Total Pi Collected',
             value: `π ${Number(stats.total_pi_earned).toFixed(4)}`,
             icon: Coins,
             color: 'text-shopee-gold',
@@ -57,7 +57,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
             trendUp: isSalesUp
         },
         {
-            label: 'Total Pesanan',
+            label: 'Total Orders',
             value: stats.total_orders,
             icon: ShoppingCart,
             color: 'text-blue-600',
@@ -65,7 +65,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
             innerBg: 'bg-blue-500'
         },
         {
-            label: 'Produk',
+            label: 'Products',
             value: stats.total_products,
             icon: Package,
             color: 'text-purple-600',
@@ -73,7 +73,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
             innerBg: 'bg-purple-500'
         },
         {
-            label: 'Menunggu Bayar',
+            label: 'Awaiting Payment',
             value: stats.pending_orders,
             icon: Clock,
             color: 'text-orange-600',
@@ -97,7 +97,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                                 {stat.trend && (
                                     <div className={`flex items-center gap-1 mt-1 text-[10px] font-bold ${stat.trendUp ? 'text-green-500' : 'text-red-500'}`}>
                                         {stat.trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                                        <span>{stat.trend} hari ini</span>
+                                        <span>{stat.trend} today</span>
                                     </div>
                                 )}
                             </div>
@@ -115,8 +115,8 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                     <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                         <div className="flex items-center justify-between mb-8">
                             <div>
-                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Tren Pesanan 7 Hari</h3>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Volume transaksi mingguan</p>
+                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">7-Day Order Trend</h3>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Weekly transaction volume</p>
                             </div>
                             <div className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100">
                                 <TrendingUp className="w-3 h-3 text-shopee-gold" />
@@ -152,7 +152,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                                     <Area
                                         type="monotone"
                                         dataKey="value"
-                                        name="Pesanan"
+                                        name="Orders"
                                         stroke="#D4AF37"
                                         strokeWidth={3}
                                         fillOpacity={1}
@@ -170,12 +170,12 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                                 <div className="h-8 w-8 bg-shopee-gold rounded-xl flex items-center justify-center">
                                     <Coins className="w-4 h-4 text-slate-900" />
                                 </div>
-                                <h3 className="text-xs font-black text-white uppercase tracking-widest">Performa Penjualan</h3>
+                                <h3 className="text-xs font-black text-white uppercase tracking-widest">Sales Performance</h3>
                             </div>
 
                             <div className="space-y-6">
                                 <div>
-                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Penjualan Hari Ini</p>
+                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Today's Sales</p>
                                     <div className="flex items-end gap-2">
                                         <h2 className="text-3xl font-black text-shopee-gold tracking-tighter">π {Number(stats.today_sales).toFixed(4)}</h2>
                                         {isSalesUp && <ArrowUpRight className="w-5 h-5 text-green-400 mb-1" />}
@@ -184,7 +184,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
 
                                 <div className="p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Kemarin</span>
+                                        <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Yesterday</span>
                                         <span className="text-xs font-bold text-white/80 tracking-tighter">π {Number(stats.yesterday_sales).toFixed(4)}</span>
                                     </div>
                                     <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
@@ -201,7 +201,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                         <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-shopee-gold/10 rounded-full blur-2xl" />
 
                         <Link href={route('admin.reports.index')} className="relative z-10 w-full py-3 bg-shopee-gold text-slate-900 rounded-xl font-black text-[10px] uppercase tracking-widest text-center mt-6 hover:bg-yellow-500 transition-colors">
-                            Lihat Laporan Detail
+                            View Detailed Reports
                         </Link>
                     </div>
                 </div>
@@ -211,8 +211,8 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="p-6 border-b border-gray-50 flex items-center justify-between">
                             <div>
-                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Pesanan Terbaru</h3>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Aktivitas transaksi terakhir</p>
+                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Latest Orders</h3>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Recent transaction activity</p>
                             </div>
                             <Link href={route('admin.orders.index')} className="p-2 hover:bg-gray-50 rounded-lg text-gray-400 hover:text-shopee-gold transition-all">
                                 <ChevronRight className="w-5 h-5" />
@@ -225,7 +225,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                                     <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3">
                                         <Search className="w-6 h-6 text-gray-300" />
                                     </div>
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Belum ada pesanan</p>
+                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">No orders yet</p>
                                 </div>
                             ) : (
                                 recent_orders.map((order) => (
@@ -243,11 +243,11 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                                                 <div className="flex items-center gap-3 mt-1">
                                                     <div className="flex items-center text-[10px] font-bold text-gray-400 gap-1 uppercase tracking-tighter">
                                                         <Clock className="w-3 h-3" />
-                                                        {new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                        {new Date(order.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
                                                     </div>
                                                     <div className="h-1 w-1 rounded-full bg-gray-200" />
                                                     <div className="text-[10px] font-black text-shopee-gold uppercase tracking-tighter">
-                                                        {order.items?.length || 0} Item Produk
+                                                        {order.items?.length || 0} Items
                                                     </div>
                                                 </div>
                                             </div>
@@ -268,8 +268,8 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="p-6 border-b border-gray-50 flex items-center justify-between">
                             <div>
-                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Peringatan Stok</h3>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Produk hampir habis</p>
+                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Stock Alerts</h3>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Products running out</p>
                             </div>
                             <div className="w-8 h-8 bg-yellow-50 rounded-lg flex items-center justify-center">
                                 <AlertTriangle className="w-4 h-4 text-yellow-500 animate-pulse" />
@@ -279,7 +279,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                         <div className="p-4 space-y-3">
                             {low_stock_products.length === 0 ? (
                                 <div className="p-10 text-center">
-                                    <p className="text-xs font-bold text-gray-300 uppercase tracking-widest italic">Stok produk aman</p>
+                                    <p className="text-xs font-bold text-gray-300 uppercase tracking-widest italic">Stock is secure</p>
                                 </div>
                             ) : (
                                 low_stock_products.map((p) => (
@@ -302,10 +302,10 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                                         <div className="text-right flex flex-col items-end">
                                             <div className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest mb-1 ${p.stock === 0 ? 'bg-red-500 text-white' : 'bg-yellow-500 text-white'
                                                 }`}>
-                                                {p.stock === 0 ? 'Habis' : `Sisa ${p.stock}`}
+                                                {p.stock === 0 ? 'Out of Stock' : `${p.stock} Left`}
                                             </div>
                                             <Link href={route('admin.products.index')} className="text-[9px] font-bold text-gray-400 hover:text-shopee-gold uppercase tracking-tighter transition-colors">
-                                                Re-stock Sekarang
+                                                Restock Now
                                             </Link>
                                         </div>
                                     </div>
@@ -315,7 +315,7 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
 
                         <div className="p-4 pt-0">
                             <Link href={route('admin.products.index')} className="w-full py-3 border-2 border-dashed border-gray-100 text-gray-400 rounded-xl font-black text-[10px] uppercase tracking-widest block text-center hover:bg-gray-50 hover:border-shopee-gold/20 hover:text-shopee-gold transition-all">
-                                Kelola Semua Produk
+                                Manage All Products
                             </Link>
                         </div>
                     </div>

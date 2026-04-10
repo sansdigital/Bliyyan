@@ -18,7 +18,7 @@ export default function Login({ status, canResetPassword }) {
 
         try {
             if (typeof window.Pi === 'undefined') {
-                throw new Error("SDK Pi Network tidak terdeteksi. Silakan buka website ini melalui 'Pi Browser' di HP Mas.");
+                throw new Error("Pi Network SDK not detected. Please open this site via 'Pi Browser' on your phone.");
             }
 
             const scopes = ['username', 'payments'];
@@ -35,21 +35,21 @@ export default function Login({ status, canResetPassword }) {
                 accessToken: auth.accessToken
             }, { withCredentials: true }).then(response => {
                 // Show alert for visual confirmation on mobile
-                alert("Login Berhasil! Mengalihkan ke Dashboard Bliyyan...");
+                alert("Login Successful! Redirecting to Bliyyan Dashboard...");
                 
                 // Use a direct hard reload to ensure session is picked up
                 window.location.assign(route('dashboard'));
             }).catch(err => {
                 console.error("Backend auth error:", err);
                 const backendError = err.response?.data?.error;
-                const msg = backendError || "Gagal terhubung ke server Bliyyan. Silakan cek koneksi internet Mas atau coba lagi nanti.";
+                const msg = backendError || "Failed to connect to Bliyyan server. Please check your internet connection and try again.";
                 setPiAuthError(msg);
                 setIsAuthenticatingPi(false);
             });
 
         } catch (error) {
             console.error(error);
-            setPiAuthError(error.message || "Gagal terhubung ke jaringan Pi Network.");
+            setPiAuthError(error.message || "Failed to connect to Pi Network.");
             setIsAuthenticatingPi(false);
         }
     };
@@ -85,22 +85,6 @@ export default function Login({ status, canResetPassword }) {
 
                 {/* Glassmorphism Card */}
                 <div className="w-full bg-white/5 backdrop-blur-xl p-8 rounded-[2rem] shadow-2xl border border-white/10 relative overflow-hidden">
-                    <div className="absolute top-4 right-6 z-20">
-                        <div className="flex items-center bg-white/10 rounded-lg p-1">
-                            <button 
-                                onClick={() => changeLanguage('id')}
-                                className={`px-2 py-1 text-[10px] font-black rounded-md transition-colors ${i18n.language === 'id' ? 'bg-[#f3ba2f] text-gray-900' : 'text-white hover:bg-white/10'}`}
-                            >
-                                ID
-                            </button>
-                            <button 
-                                onClick={() => changeLanguage('en')}
-                                className={`px-2 py-1 text-[10px] font-black rounded-md transition-colors ${i18n.language === 'en' ? 'bg-[#f3ba2f] text-gray-900' : 'text-white hover:bg-white/10'}`}
-                            >
-                                EN
-                            </button>
-                        </div>
-                    </div>
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#f3ba2f] to-transparent opacity-50"></div>
                     
                     <div className="mb-8 text-center">

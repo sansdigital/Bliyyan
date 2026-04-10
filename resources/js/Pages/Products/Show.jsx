@@ -33,27 +33,27 @@ export default function Show({ auth, product, can_review, active_order_id, addre
             setWishlisted(response.data.status === 'added');
             toast.success(response.data.message);
         } catch (error) {
-            toast.error("Gagal mengubah wishlist.");
+            toast.error("Failed to update wishlist.");
         }
     };
 
     const handlePurchase = async () => {
         if (auth.user.is_admin) {
-            toast.warning("Admin tidak diperbolehkan melakukan pembelian.");
+            toast.warning("Admin is not allowed to make purchases.");
             return;
         }
         if (!selectedAddressId) {
-            toast.error("Pilih alamat pengiriman terlebih dahulu.");
+            toast.error("Please select a shipping address first.");
             return;
         }
         setLoading(true);
         try {
             await createPiPayment(product.id, null, selectedAddressId);
-            toast.success(`Pembelian ${product.name} berhasil! Silakan cek menu Pesanan.`);
+            toast.success(`${product.name} purchase successful! Please check the Orders menu.`);
             router.visit(route('dashboard'));
         } catch (error) {
-            console.error("Pembelian gagal:", error);
-            toast.error("Terjadi kesalahan saat memproses pembayaran Pi.");
+            console.error("Purchase failed:", error);
+            toast.error("An error occurred while processing the Pi payment.");
         } finally {
             setLoading(false);
         }
@@ -61,16 +61,16 @@ export default function Show({ auth, product, can_review, active_order_id, addre
 
     const handleAddToCart = async () => {
         if (auth.user.is_admin) {
-            toast.warning("Admin tidak diperbolehkan menambahkan ke keranjang.");
+            toast.warning("Admin is not allowed to add items to cart.");
             return;
         }
         setCartLoading(true);
         try {
             await axios.post(route('cart.add'), { product_id: product.id, quantity: 1 });
-            toast.success("Produk berhasil ditambahkan ke keranjang!");
+            toast.success("Product successfully added to cart!");
             router.reload({ only: ['cart_count'] });
         } catch (error) {
-            toast.error(error.response?.data?.error || "Gagal menambahkan produk ke keranjang.");
+            toast.error(error.response?.data?.error || "Failed to add product to cart.");
         } finally {
             setCartLoading(false);
         }
@@ -97,12 +97,12 @@ export default function Show({ auth, product, can_review, active_order_id, addre
             </Head>
 
             <div className="max-w-6xl mx-auto py-2 sm:py-6">
-                <nav className="flex text-xs text-gray-500 mb-4 px-2" aria-label="Breadcrumb">
-                    <ol className="flex items-center space-x-1">
-                        <li><Link href={route('dashboard')} className="hover:text-shopee">Bliyyan</Link></li>
+                <nav className="flex text-[10px] uppercase tracking-widest text-gray-400 mb-6 px-4" aria-label="Breadcrumb">
+                    <ol className="flex items-center space-x-2">
+                        <li><Link href={route('dashboard')} className="hover:text-shopee transition-colors">Bliyyan</Link></li>
                         <li className="flex items-center">
-                            <svg className="w-3 h-3 text-gray-400 mx-1" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
-                            <span className="hover:text-shopee cursor-pointer font-bold">{product.category?.name}</span>
+                            <svg className="w-3 h-3 text-gray-300 mx-1" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
+                            <span className="text-shopee-dark font-black">{product.category?.name}</span>
                         </li>
                     </ol>
                 </nav>
@@ -154,16 +154,16 @@ export default function Show({ auth, product, can_review, active_order_id, addre
                             </h1>
                         </div>
 
-                        <div className="flex items-center gap-4 text-xs text-gray-500 mb-6 py-2 border-y border-gray-50">
-                            <div className="flex items-center gap-0.5">
-                                <span className="text-shopee font-bold border-b border-shopee">4.9</span>
-                                <div className="flex text-shopee">★★★★★</div>
+                        <div className="flex items-center gap-4 text-xs text-gray-400 mb-6 py-3 border-y border-gray-100">
+                            <div className="flex items-center gap-1">
+                                <span className="text-shopee font-black border-b-2 border-shopee/30">4.9</span>
+                                <div className="flex text-shopee-gold">★★★★★</div>
                             </div>
-                            <div className="border-l pl-4">
-                                <span className="text-gray-800 font-medium">102</span> Penilaian
+                            <div className="border-l border-gray-100 pl-4">
+                                <span className="text-slate-800 font-black">102</span> <span className="uppercase text-[10px] tracking-tighter">Reviews</span>
                             </div>
-                            <div className="border-l pl-4">
-                                <span className="text-gray-800 font-medium">543</span> Terjual
+                            <div className="border-l border-gray-100 pl-4">
+                                <span className="text-slate-800 font-black">543</span> <span className="uppercase text-[10px] tracking-tighter">Sold</span>
                             </div>
                         </div>
 
@@ -174,40 +174,43 @@ export default function Show({ auth, product, can_review, active_order_id, addre
                             </div>
                         </div>
 
-                        <div className="space-y-6 mb-8 py-4 border-y border-gray-50">
-                            <div className="flex text-sm">
-                                <span className="w-24 text-gray-400 font-medium uppercase text-[11px] tracking-tight">Pengiriman</span>
+                        <div className="space-y-6 mb-8 py-6 border-y border-gray-50">
+                            <div className="flex text-sm items-start">
+                                <span className="w-24 text-gray-400 font-black uppercase text-[10px] tracking-widest pt-1">Shipping</span>
                                 {addresses.length > 0 ? (
                                     <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <svg className="w-3.5 h-3.5 text-shopee" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                            <span className="text-gray-800 font-bold">{selectedAddress?.recipient_name}</span>
-                                            <span className="text-gray-400">|</span>
-                                            <span className="text-gray-600">{selectedAddress?.phone_number}</span>
+                                        <div className="flex items-center gap-2 mb-1.5">
+                                            <svg className="w-4 h-4 text-shopee" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                            <span className="text-slate-800 font-black">{selectedAddress?.recipient_name}</span>
+                                            <span className="text-gray-300">|</span>
+                                            <span className="text-gray-500 text-xs font-bold">{selectedAddress?.phone_number}</span>
                                         </div>
-                                        <p className="text-xs text-gray-500 truncate max-w-md mb-2">
+                                        <p className="text-[11px] text-gray-400 leading-relaxed max-w-md mb-3">
                                             {selectedAddress?.address_line_1}, {selectedAddress?.city}
                                         </p>
                                         <select 
                                             value={selectedAddressId}
                                             onChange={(e) => setSelectedAddressId(Number(e.target.value))}
-                                            className="text-[10px] font-black text-shopee bg-transparent border-none focus:ring-0 p-0 h-auto uppercase tracking-widest cursor-pointer"
+                                            className="text-[10px] font-black text-shopee bg-shopee/5 border-shopee/20 rounded-sm focus:ring-shopee px-2 py-1 h-auto uppercase tracking-tighter cursor-pointer"
                                         >
                                             {addresses.map(addr => (
-                                                <option key={addr.id} value={addr.id}>Kirim ke {addr.label} {addr.is_default ? '(Utama)' : ''}</option>
+                                                <option key={addr.id} value={addr.id}>Ship to {addr.label} {addr.is_default ? '(Default)' : ''}</option>
                                             ))}
                                         </select>
                                     </div>
                                 ) : (
                                     <div className="flex-1">
-                                        <p className="text-xs text-red-400 font-bold uppercase mb-2">Alamat belum diatur</p>
-                                        <Link href={route('profile.edit')} className="text-[10px] font-black text-shopee uppercase border border-shopee px-2 py-1 rounded-sm">Set Alamat Pengiriman</Link>
+                                        <p className="text-[10px] text-red-500 font-black uppercase tracking-widest mb-3">Address not set</p>
+                                        <Link href={route('profile.edit')} className="text-[10px] font-black text-white bg-shopee uppercase px-4 py-2 rounded-sm shadow-sm active:scale-95 transition-transform inline-block">Set Shipping Address</Link>
                                     </div>
                                 )}
                             </div>
-                            <div className="flex text-sm">
-                                <span className="w-24 text-gray-400 font-medium uppercase text-[11px] tracking-tight">Kuantitas</span>
-                                <span className="text-gray-800 font-bold">1 <span className="text-gray-400 font-normal ml-2">(Tersedia {product.stock})</span></span>
+                            <div className="flex text-sm items-center">
+                                <span className="w-24 text-gray-400 font-black uppercase text-[10px] tracking-widest">Quantity</span>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-slate-800 font-black bg-gray-100 px-3 py-1 rounded-sm">1</span>
+                                    <span className="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">({product.stock} Available)</span>
+                                </div>
                             </div>
                         </div>
 
@@ -224,27 +227,27 @@ export default function Show({ auth, product, can_review, active_order_id, addre
                                 <>
                                     <button 
                                         onClick={toggleWishlist}
-                                        className={`flex-1 border bg-white px-6 py-3 rounded-sm font-medium transition-all flex items-center justify-center gap-2 ${wishlisted ? 'border-red-500 text-red-500' : 'border-gray-200 text-gray-500 hover:border-red-200 hover:text-red-400'}`}
+                                        className={`flex-1 border-2 px-6 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-2 ${wishlisted ? 'border-red-500 text-red-500 bg-red-50' : 'border-gray-100 text-gray-400 hover:border-red-100 hover:text-red-400 hover:bg-red-50/30'}`}
                                     >
                                         <svg className={`w-5 h-5 ${wishlisted ? 'fill-current' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                         </svg>
-                                        {wishlisted ? 'Favorit Saya' : 'Tambah Favorit'}
+                                        {wishlisted ? 'Wishlisted' : 'Add to Wishlist'}
                                     </button>
                                     <button 
                                         onClick={handleAddToCart}
                                         disabled={cartLoading}
-                                        className="flex-1 border border-shopee text-shopee bg-shopee/5 px-6 py-3 rounded-sm font-medium hover:bg-shopee/10 transition-colors flex items-center justify-center gap-2 disabled:bg-gray-100 disabled:border-gray-200"
+                                        className="flex-1 border-2 border-shopee/30 text-shopee bg-white px-6 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-shopee/5 transition-all flex items-center justify-center gap-2 disabled:bg-gray-100 disabled:border-gray-200"
                                     >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                                        {cartLoading ? 'Menambahkan...' : 'Masukkan Keranjang'}
+                                        {cartLoading ? 'Adding...' : 'Add to Cart'}
                                     </button>
                                     <button 
                                         onClick={handlePurchase}
                                         disabled={loading}
-                                        className="flex-1 bg-shopee text-white px-6 py-3 rounded-sm font-medium hover:bg-shopee-hover transition-colors flex items-center justify-center disabled:bg-gray-300"
+                                        className="flex-1 bg-shopee text-white px-8 py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-shopee-hover transition-all flex items-center justify-center shadow-lg shadow-shopee/20 active:scale-95 disabled:bg-gray-300"
                                     >
-                                        {loading ? 'Memproses...' : 'Beli Sekarang'}
+                                        {loading ? 'Processing...' : 'Buy Now'}
                                     </button>
                                 </>
                             )}
@@ -253,45 +256,46 @@ export default function Show({ auth, product, can_review, active_order_id, addre
                 </div>
 
                 {/* Details Section */}
-                <div className="mt-4 bg-white p-6 shadow-sm rounded-sm mb-4">
-                    <h3 className="text-lg bg-gray-50 p-3 -mx-6 -mt-6 mb-6 font-medium text-gray-800 uppercase tracking-tight">Spesifikasi Produk</h3>
-                    <div className="space-y-4 max-w-2xl px-2">
+                <div className="mt-4 bg-white p-8 shadow-sm rounded-xl mb-6">
+                    <h3 className="text-sm border-l-4 border-shopee pl-4 mb-8 font-black text-slate-800 uppercase tracking-widest">Product Specifications</h3>
+                    <div className="space-y-6 max-w-3xl">
                         <div className="flex text-sm">
-                            <span className="w-40 text-gray-500">Merek</span>
-                            <span className="text-gray-800">Premium Tech</span>
+                            <span className="w-40 text-gray-400 font-bold uppercase text-[10px] tracking-tighter">Brand</span>
+                            <span className="text-slate-800 font-black">Premium Tech</span>
                         </div>
                         <div className="flex text-sm">
-                            <span className="w-40 text-gray-500">Kondisi</span>
-                            <span className="text-gray-800">Baru (Segel)</span>
+                            <span className="w-40 text-gray-400 font-bold uppercase text-[10px] tracking-tighter">Condition</span>
+                            <span className="text-slate-800 font-black">New (Sealed)</span>
                         </div>
-                        <div className="flex text-sm border-t pt-4">
-                            <span className="w-full text-gray-800 whitespace-pre-wrap leading-relaxed">
+                        <div className="border-t border-gray-50 pt-8 mt-4">
+                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4">Description</h4>
+                            <div className="text-sm text-slate-600 whitespace-pre-wrap leading-loose font-medium">
                                 {product.description}
-                            </span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Reviews Section */}
-                <div className="bg-white p-6 shadow-sm rounded-sm mb-20 md:mb-10">
-                    <h3 className="text-lg bg-gray-50 p-3 -mx-6 -mt-6 mb-6 font-medium text-gray-800 uppercase tracking-tight">Penilaian Produk</h3>
+                <div className="bg-white p-8 shadow-sm rounded-xl mb-24 md:mb-10">
+                    <h3 className="text-sm border-l-4 border-shopee pl-4 mb-8 font-black text-slate-800 uppercase tracking-widest">Product Ratings</h3>
                     
-                    <div className="flex flex-col md:flex-row gap-8 mb-10 items-center md:items-start p-6 bg-shopee/5 rounded-sm border border-shopee/10">
-                        <div className="text-center">
-                            <div className="text-4xl font-black text-shopee">{product.average_rating} <span className="text-lg text-gray-400 font-normal">/ 5</span></div>
-                            <div className="flex text-shopee mt-2 text-xl">
+                    <div className="flex flex-col md:flex-row gap-8 mb-10 items-center md:items-start p-8 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="text-center md:border-r md:pr-10 border-gray-100">
+                            <div className="text-5xl font-black text-shopee">{product.average_rating} <span className="text-xl text-gray-300 font-normal">/ 5</span></div>
+                            <div className="flex text-shopee-gold mt-3 text-2xl justify-center">
                                 {[...Array(5)].map((_, i) => (
-                                    <svg key={i} className={`w-5 h-5 ${i < Math.round(product.average_rating) ? 'fill-current' : 'text-gray-300'}`} viewBox="0 0 20 20">
+                                    <svg key={i} className={`w-6 h-6 ${i < Math.round(product.average_rating) ? 'fill-current' : 'text-gray-200'}`} viewBox="0 0 20 20">
                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                     </svg>
                                 ))}
                             </div>
-                            <p className="text-xs text-gray-500 mt-2 font-bold uppercase tracking-widest">{product.reviews.length} Ulasan</p>
+                            <p className="text-[10px] text-gray-400 mt-4 font-black uppercase tracking-[0.2em]">{product.reviews.length} Reviews</p>
                         </div>
                         
-                        <div className="flex-1 flex flex-wrap gap-2 justify-center md:justify-start">
-                            {['Semua', '5 Bintang', '4 Bintang', '3 Bintang', '2 Bintang', '1 Bintang'].map((label) => (
-                                <button key={label} className="px-4 py-1.5 rounded-full border border-gray-200 text-xs font-medium hover:border-shopee hover:text-shopee transition-colors bg-white">
+                        <div className="flex-1 flex flex-wrap gap-2.5 justify-center md:justify-start">
+                            {['All', '5 Stars', '4 Stars', '3 Stars', '2 Stars', '1 Star'].map((label) => (
+                                <button key={label} className="px-6 py-2 rounded-full border border-gray-200 text-[10px] font-black uppercase tracking-widest hover:border-shopee hover:text-shopee transition-all bg-white shadow-sm active:scale-95">
                                     {label}
                                 </button>
                             ))}
@@ -306,7 +310,7 @@ export default function Show({ auth, product, can_review, active_order_id, addre
                     {/* Reviews List */}
                     <div className="divide-y divide-gray-100">
                         {product.reviews.length === 0 ? (
-                            <div className="py-10 text-center text-gray-400 italic text-sm">Belum ada ulasan untuk produk ini.</div>
+                            <div className="py-16 text-center text-gray-300 italic text-sm font-medium tracking-tight">No reviews yet for this product.</div>
                         ) : (
                             product.reviews.map((review) => (
                                 <div key={review.id} className="py-6 flex gap-4">
@@ -334,21 +338,21 @@ export default function Show({ auth, product, can_review, active_order_id, addre
 
             {/* Mobile Sticky Buy Bar */}
             {!auth.user?.is_admin && (
-                <div className="fixed bottom-[56px] left-0 right-0 bg-white border-t border-gray-100 p-2 flex gap-2 md:hidden z-40 pb-safe">
+                <div className="fixed bottom-[56px] left-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 p-2 flex gap-2 md:hidden z-40 pb-safe">
                     <button 
                         onClick={handleAddToCart}
                         disabled={cartLoading}
-                        className="flex flex-col items-center justify-center border border-shopee text-shopee w-16 h-12 rounded-sm bg-shopee/5 active:bg-shopee/10 transition-colors disabled:opacity-50"
+                        className="flex flex-col items-center justify-center border-2 border-shopee/20 text-shopee w-16 h-12 rounded-xl bg-white active:bg-shopee/5 transition-all disabled:opacity-50"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                        <span className="text-[8px] font-bold uppercase truncate px-1">{cartLoading ? '...' : 'Keranjang'}</span>
+                        <span className="text-[8px] font-black uppercase truncate px-1 tracking-tighter">{cartLoading ? '...' : 'Cart'}</span>
                     </button>
                     <button 
                         onClick={handlePurchase}
                         disabled={loading}
-                        className="flex-1 bg-shopee text-white h-12 rounded-sm font-bold uppercase text-sm shadow-lg active:scale-95 transition-transform disabled:bg-gray-300"
+                        className="flex-1 bg-shopee text-white h-12 rounded-xl font-black uppercase text-xs shadow-lg shadow-shopee/20 active:scale-95 transition-transform disabled:bg-gray-300"
                     >
-                        {loading ? 'Memproses...' : 'Beli Sekarang'}
+                        {loading ? 'Processing...' : 'Buy Now'}
                     </button>
                 </div>
             )}
@@ -369,29 +373,29 @@ function ReviewForm({ product, orderId }) {
         post(route('products.review', product.id), {
             onSuccess: () => {
                 reset();
-                toast.success('Ulasan Anda berhasil dikirim!');
+                toast.success('Your review has been successfully submitted!');
             },
             onError: (err) => {
-                toast.error(Object.values(err)[0] || 'Gagal mengirim ulasan.');
+                toast.error(Object.values(err)[0] || 'Failed to submit review.');
             }
         });
     };
 
     return (
-        <div className="mb-10 p-6 border border-shopee/20 bg-shopee/5 rounded-sm">
-            <h4 className="text-sm font-black text-gray-800 uppercase tracking-tight mb-4">Berikan Ulasan Anda</h4>
-            <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="mb-10 p-8 border border-gray-100 bg-gray-50/50 rounded-xl">
+            <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-6">Leave Your Review</h4>
+            <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Rating Bintang</label>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Star Rating</label>
                     <div className="flex gap-2">
                         {[1, 2, 3, 4, 5].map((star) => (
                             <button
                                 key={star}
                                 type="button"
                                 onClick={() => setData('rating', star)}
-                                className={`p-1 transition-transform active:scale-90 ${data.rating >= star ? 'text-shopee' : 'text-gray-300'}`}
+                                className={`p-1 transition-transform active:scale-90 ${data.rating >= star ? 'text-shopee-gold' : 'text-gray-200'}`}
                             >
-                                <svg className="w-8 h-8 fill-current" viewBox="0 0 20 20">
+                                <svg className="w-10 h-10 fill-current" viewBox="0 0 20 20">
                                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                 </svg>
                             </button>
@@ -399,21 +403,21 @@ function ReviewForm({ product, orderId }) {
                     </div>
                 </div>
                 <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Komentar Ulasan</label>
+                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Review Comment</label>
                     <textarea
                         value={data.comment}
                         onChange={(e) => setData('comment', e.target.value)}
-                        className="w-full rounded-sm border-gray-200 focus:ring-shopee focus:border-shopee text-sm"
-                        placeholder="Bagaimana kualitas produk ini? Beritahukan pembeli lainnya..."
-                        rows="3"
+                        className="w-full rounded-xl border-gray-100 bg-white focus:ring-shopee focus:border-shopee text-sm p-4 placeholder:text-gray-300 font-medium"
+                        placeholder="Share your thoughts about this product..."
+                        rows="4"
                     ></textarea>
                 </div>
                 <button
                     type="submit"
                     disabled={processing}
-                    className="bg-shopee text-white px-6 py-2 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-shopee-hover transition-colors disabled:bg-gray-300"
+                    className="bg-slate-800 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all shadow-lg active:scale-95 disabled:bg-gray-300"
                 >
-                    {processing ? 'Mengirim...' : 'Kirim Ulasan'}
+                    {processing ? 'Submitting...' : 'Submit Review'}
                 </button>
             </form>
         </div>

@@ -137,9 +137,9 @@ export default function Index({ auth, products, categories, category_groups, fil
             forceFormData: true,
             onSuccess: () => {
                 closeModal();
-                toast.success(editingProduct ? 'Produk berhasil diperbarui!' : 'Produk berhasil ditambahkan!');
+                toast.success(editingProduct ? 'Product successfully updated!' : 'Product successfully added!');
             },
-            onError: () => toast.error('Gagal menyimpan. Periksa kembali form.')
+            onError: () => toast.error('Failed to save. Please check the form again.')
         });
     };
 
@@ -151,7 +151,7 @@ export default function Index({ auth, products, categories, category_groups, fil
         router.delete(route('admin.products.destroy', deleteConfirm.id), {
             onSuccess: () => {
                 setDeleteConfirm(null);
-                toast.success('Produk berhasil dihapus!');
+                toast.success('Product successfully deleted!');
             }
         });
     };
@@ -165,9 +165,9 @@ export default function Index({ auth, products, categories, category_groups, fil
                 <div>
                     <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">Products</h2>
                     <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400 mt-1">
-                        <span className="hover:text-shopee-gold cursor-pointer transition-colors">Katalog</span>
+                        <span className="hover:text-shopee-gold cursor-pointer transition-colors">Catalog</span>
                         <ChevronRight className="w-3 h-3 text-gray-300" />
-                        <span className="text-slate-800">Daftar Produk</span>
+                        <span className="text-slate-800">Product List</span>
                     </div>
                 </div>
             </div>
@@ -233,7 +233,7 @@ export default function Index({ auth, products, categories, category_groups, fil
                     onClick={openCreateModal}
                     className="ml-auto px-6 py-2.5 bg-shopee-gold hover:bg-yellow-500 text-slate-900 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-shopee-gold/20 transition-all active:scale-95"
                 >
-                    <Plus className="w-4 h-4" /> Tambah Produk
+                    <Plus className="w-4 h-4" /> Add Product
                 </button>
             </div>
 
@@ -312,7 +312,7 @@ export default function Index({ auth, products, categories, category_groups, fil
                                                     {product.stock}
                                                 </span>
                                                 {product.stock === 0 ? (
-                                                    <span className="text-[8px] font-black bg-red-100 text-red-600 px-1.5 py-0.5 rounded uppercase">Habis</span>
+                                                    <span className="text-[8px] font-black bg-red-100 text-red-600 px-1.5 py-0.5 rounded uppercase">Out of Stock</span>
                                                 ) : product.stock < 5 ? (
                                                     <span className="text-[8px] font-black bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded uppercase">Low</span>
                                                 ) : null}
@@ -508,7 +508,7 @@ export default function Index({ auth, products, categories, category_groups, fil
                                             <img src={img.image_path.startsWith('http') ? img.image_path : `/storage/${img.image_path}`} className="w-full h-full object-cover" alt="" />
                                             <button
                                                 type="button"
-                                                onClick={() => router.delete(route('admin.products.image.delete', img.id), { preserveScroll: true, onSuccess: () => toast.success('Foto dihapus') })}
+                                                onClick={() => router.delete(route('admin.products.image.delete', img.id), { preserveScroll: true, onSuccess: () => toast.success('Photo deleted') })}
                                                 className="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 <Trash2 className="w-4 h-4" />

@@ -104,17 +104,17 @@ export default function Index({ auth, categories, groups = [], filters = {} }) {
             put(route('admin.categories.update', editingCategory.id), {
                 onSuccess: () => {
                     closeModal();
-                    toast.success('Kategori diperbarui!');
+                    toast.success('Category updated!');
                 },
-                onError: () => toast.error('Gagal menyimpan kategori.')
+                onError: () => toast.error('Failed to save category.')
             });
         } else {
             post(route('admin.categories.store'), {
                 onSuccess: () => {
                     closeModal();
-                    toast.success('Kategori baru ditambahkan!');
+                    toast.success('New category added!');
                 },
-                onError: () => toast.error('Gagal menyimpan kategori.')
+                onError: () => toast.error('Failed to save category.')
             });
         }
     };
@@ -123,7 +123,7 @@ export default function Index({ auth, categories, groups = [], filters = {} }) {
         destroy(route('admin.categories.destroy', deleteConfirm.id), {
             onSuccess: () => {
                 setDeleteConfirm(null);
-                toast.success('Kategori berhasil dihapus!');
+                toast.success('Category successfully deleted!');
             }
         });
     };

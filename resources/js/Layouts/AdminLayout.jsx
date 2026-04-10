@@ -33,25 +33,25 @@ const navSections = [
         ]
     },
     {
-        section: 'Katalog',
+        section: 'Catalog',
         items: [
-            { label: 'Produk',       icon: 'products',  route: 'admin.products.index',     match: 'admin.products.*' },
-            { label: 'Kategori',     icon: 'category',  route: 'admin.categories.index',   match: 'admin.categories.*' },
-            { label: 'Grup & Ikon',  icon: 'groups',    route: 'admin.category-groups.index', match: 'admin.category-groups.*' },
+            { label: 'Products',       icon: 'products',  route: 'admin.products.index',     match: 'admin.products.*' },
+            { label: 'Categories',     icon: 'category',  route: 'admin.categories.index',   match: 'admin.categories.*' },
+            { label: 'Groups & Icons',  icon: 'groups',    route: 'admin.category-groups.index', match: 'admin.category-groups.*' },
         ]
     },
     {
-        section: 'Transaksi',
+        section: 'Transactions',
         items: [
-            { label: 'Pesanan Pi',   icon: 'orders',    route: 'admin.orders.index',       match: 'admin.orders.*' },
-            { label: 'Voucher',      icon: 'vouchers',  route: 'admin.vouchers.index',     match: 'admin.vouchers.*' },
-            { label: 'Laporan',      icon: 'reports',   route: 'admin.reports.index',      match: 'admin.reports.*' },
+            { label: 'Pi Orders',    icon: 'orders',    route: 'admin.orders.index',       match: 'admin.orders.*' },
+            { label: 'Vouchers',     icon: 'vouchers',  route: 'admin.vouchers.index',     match: 'admin.vouchers.*' },
+            { label: 'Reports',      icon: 'reports',   route: 'admin.reports.index',      match: 'admin.reports.*' },
         ]
     },
     {
-        section: 'Umum',
+        section: 'General',
         items: [
-            { label: 'Ke Website',   icon: 'website',   href: '/' },
+            { label: 'Go to Website', icon: 'website',   href: '/' },
         ]
     }
 ];
@@ -229,7 +229,7 @@ export default function AdminLayout({ children, user }) {
                                 <div className="fixed inset-0 z-40" onClick={() => setIsProfileOpen(false)} />
                                 <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 py-2 z-50">
                                     <div className="px-4 py-3 border-b border-gray-50 mb-1">
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Login sebagai</p>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">Logged in as</p>
                                         <p className="text-sm font-black text-gray-800 truncate">{user?.email}</p>
                                     </div>
                                     <Link
@@ -238,7 +238,7 @@ export default function AdminLayout({ children, user }) {
                                         className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 hover:text-shopee-gold transition-all"
                                     >
                                         <Icon d={icons.user} className="w-4 h-4" />
-                                        Edit Profil
+                                        Edit Profile
                                     </Link>
                                     <Link
                                         href="/"
@@ -246,7 +246,7 @@ export default function AdminLayout({ children, user }) {
                                         className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-gray-600 hover:bg-gray-50 hover:text-shopee-gold transition-all"
                                     >
                                         <Icon d={icons.website} className="w-4 h-4" />
-                                        Lihat Website
+                                        View Website
                                     </Link>
                                     <div className="border-t border-gray-50 mt-1" />
                                     <Link
@@ -256,7 +256,7 @@ export default function AdminLayout({ children, user }) {
                                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-all"
                                     >
                                         <Icon d={icons.logout} className="w-4 h-4" />
-                                        Keluar Sistem
+                                        Sign Out
                                     </Link>
                                 </div>
                             </>

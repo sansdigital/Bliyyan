@@ -68,16 +68,16 @@ export default function AuthenticatedLayout({ children, header }) {
                                         <Dropdown.Content>
                                             {user.is_admin && (
                                                 <Dropdown.Link href={route('admin.dashboard')} className="font-bold text-shopee">
-                                                    Kelola Bliyyan
+                                                    Manage Bliyyan
                                                 </Dropdown.Link>
                                             )}
-                                            <Dropdown.Link href={route('profile.edit')}>Akun Saya</Dropdown.Link>
-                                            <Dropdown.Link href={route('logout')} method="post" as="button">Keluar</Dropdown.Link>
+                                            <Dropdown.Link href={route('profile.edit')}>My Account</Dropdown.Link>
+                                            <Dropdown.Link href={route('logout')} method="post" as="button">Logout</Dropdown.Link>
                                         </Dropdown.Content>
                                     </Dropdown>
                                 ) : (
                                     <div className="flex items-center gap-2">
-                                        <Link href={route('login')} className="text-xs font-bold hover:underline">MASUK</Link>
+                                        <Link href={route('login')} className="text-xs font-bold hover:underline">LOGIN</Link>
                                     </div>
                                 )}
                             </div>

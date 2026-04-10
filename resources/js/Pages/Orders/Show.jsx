@@ -35,12 +35,13 @@ export default function Show({ order }) {
                 } catch (e) { console.error(e); }
             });
 
-            // Step 2: Now create the actual payment
-            await window.Pi.createPayment({
-                amount: parseFloat(order.total_price),
-                memo: `Pembayaran Pesanan #${order.id} di Bliyyan`,
-                metadata: { order_id: order.id },
-            }, {
+            const paymentData = {
+                amount: order.total_price,
+                memo: `Payment for Order #${order.id} at Bliyyan`,
+                metadata: { orderId: order.id }
+            };
+
+            await window.Pi.createPayment(paymentData, {
                 onReadyForServerApproval: async (paymentId) => {
                     await axios.post(route('pi.approve'), { paymentId, order_id: order.id });
                 },
@@ -50,154 +51,127 @@ export default function Show({ order }) {
                 },
                 onCancel: async (paymentId) => {
                     await axios.post(route('pi.cancel'), { paymentId });
-                    setPaying(false);
+                    setLoading(false);
                 },
                 onError: (error) => {
                     console.error('Pi Payment Error:', error);
-                    setPayError('Pembayaran gagal: ' + (error?.message || 'Coba lagi ya.'));
-                    setPaying(false);
+                    setPayError('Payment failed: ' + (error?.message || 'Please try again.'));
+                    setLoading(false);
                 },
             });
         } catch (err) {
             console.error(err);
-            setPayError(err.message || 'Gagal memulai pembayaran Pi.');
-            setPaying(false);
+            setPayError(err.message || 'Failed to initiate Pi payment.');
+            setLoading(false);
         }
     };
 
-
     return (
-        <AuthenticatedLayout>
-            <Head title={`Pesanan #${order.id}`} />
+        <AuthenticatedLayout header={<h2 className="font-black text-sm uppercase tracking-widest text-slate-800">Order Details</h2>}>
+            <Head title={`Order #${order.id}`} />
 
-            <div className="max-w-2xl mx-auto pb-24 md:pb-8">
-                {/* Back link */}
-                <Link href={route('orders.index')} className="text-shopee text-xs font-bold uppercase tracking-widest hover:underline flex items-center gap-1 mb-4">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
-                    Kembali ke Daftar Pesanan
-                </Link>
+            <div className="max-w-4xl mx-auto pb-24 md:pb-8">
+                <div className="mb-6">
+                    <Link href={route('orders.index')} className="text-[10px] font-black text-gray-400 uppercase tracking-widest hover:text-shopee transition-all inline-flex items-center gap-2 mb-6">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7"/></svg>
+                        Back to Orders
+                    </Link>
 
-                <div className="bg-white rounded-sm shadow-sm overflow-hidden">
-                    {/* Status Banner */}
-                    <div className={`p-5 border-b ${status.color} flex items-center gap-3`}>
-                        <span className="text-2xl">{status.icon}</span>
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-shopee"></div>
                         <div>
-                            <p className="font-black text-base">{status.label}</p>
-                            <p className="text-xs opacity-70">Pesanan #{order.id} · {new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                            <h1 className="text-xl font-black text-slate-800 uppercase tracking-tighter mb-1">Order Details #{order.id}</h1>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                Ordered on {new Date(order.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                        </div>
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-5 py-2 rounded-full border self-start md:self-center ${status.color}`}>
+                            {status.label}
+                        </span>
+                    </div>
+                </div>
+
+                {order.tracking_number && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-6 relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-1.5 h-full bg-sky-500"></div>
+                        <div className="flex items-center gap-4 mb-6">
+                            <svg className="w-6 h-6 text-sky-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <h3 className="text-[10px] font-black text-slate-800 uppercase tracking-widest">Shipping Information</h3>
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gray-50 rounded-xl border border-gray-100">
+                            <div>
+                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Carrier: {order.shipping_courier}</p>
+                                <p className="text-sm font-black text-slate-800 tracking-tight">Waybill: {order.tracking_number}</p>
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    navigator.clipboard.writeText(order.tracking_number);
+                                    alert('Tracking number copied!');
+                                }}
+                                className="text-[10px] font-black text-sky-600 uppercase tracking-widest hover:bg-sky-50 px-5 py-2.5 rounded-xl border border-sky-100 transition-all active:scale-95"
+                            >
+                                Copy Number
+                            </button>
                         </div>
                     </div>
+                )}
 
-                    {/* Shipping Info */}
-                    {order.tracking_number && (
-                        <div className="p-5 border-b border-gray-100 bg-white">
-                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Informasi Pengiriman</p>
-                            <div className="flex items-start gap-4">
-                                <div className="bg-shopee/10 p-3 rounded-full">
-                                    <svg className="w-6 h-6 text-shopee" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                </div>
-                                <div>
-                                    <p className="text-sm font-bold text-gray-800">{order.shipping_courier}</p>
-                                    <p className="text-xs text-gray-500 mt-1 uppercase tracking-tight font-medium">No. Resi: {order.tracking_number}</p>
-                                    <button 
-                                        onClick={() => {
-                                            navigator.clipboard.writeText(order.tracking_number);
-                                            alert('Nomor resi disalin!');
-                                        }}
-                                        className="text-[10px] font-black text-shopee uppercase mt-2 hover:underline"
-                                    >
-                                        Salin No. Resi
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Items */}
-                    <div className="p-4 divide-y divide-gray-50">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Detail Produk</p>
-
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                    <div className="divide-y divide-gray-50">
                         {order.items.map((item) => (
-                            <div key={item.id} className="flex items-center gap-4 py-3">
-                                <div className="w-16 h-16 bg-gray-50 border border-gray-100 rounded flex-shrink-0 overflow-hidden p-1 flex items-center justify-center">
-                                    <img
-                                        src={item.product?.image ? (item.product.image.startsWith('http') ? item.product.image : `/storage/${item.product.image}`) : `https://dummyimage.com/100x100/f5f5f5/ee4d2d.png&text=${item.product?.name?.charAt(0) || '?'}`}
-                                        alt={item.product?.name}
-                                        className="max-h-full max-w-full object-contain"
-                                    />
+                            <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-6 px-8 py-6 items-center">
+                                <div className="md:col-span-3 flex gap-4">
+                                    <div className="w-16 h-16 border border-gray-100 rounded-xl flex-shrink-0 p-1.5 flex items-center justify-center bg-gray-50">
+                                        <img
+                                            src={item.product?.image ? (item.product.image.startsWith('http') ? item.product.image : `/storage/${item.product.image}`) : `https://dummyimage.com/100x100/f5f5f5/ee4d2d.png&text=${item.product?.name?.charAt(0) || '?'}`}
+                                            alt={item.product?.name}
+                                            className="max-h-full max-w-full object-contain"
+                                        />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-black text-slate-800 truncate">{item.product?.name || 'Product unavailable'}</p>
+                                        <p className="md:hidden text-xs text-gray-400 mt-1 uppercase tracking-tighter font-bold">{item.quantity} x π {Number(item.price).toFixed(4)}</p>
+                                    </div>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-gray-800 leading-snug">{item.product?.name || 'Produk tidak tersedia'}</p>
-                                    <p className="text-xs text-gray-400 mt-0.5">{item.quantity} barang × π {Number(item.price).toFixed(4)}</p>
-                                </div>
-                                <p className="text-sm font-bold text-shopee flex-shrink-0 text-right">
-                                    π {Number(item.price * item.quantity).toFixed(4)}
-                                </p>
+                                <div className="hidden md:block text-center text-sm font-black text-slate-600">π {Number(item.price).toFixed(4)}</div>
+                                <div className="hidden md:block text-center text-sm font-black text-slate-800">{item.quantity}</div>
+                                <div className="text-right text-sm font-black text-shopee">π {Number(item.price * item.quantity).toFixed(4)}</div>
                             </div>
                         ))}
                     </div>
+                </div>
 
-                    {/* Summary */}
-                    <div className="bg-gray-50 p-4 space-y-2 text-sm border-t border-gray-100">
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Ringkasan Pembayaran</p>
-                        <div className="flex justify-between text-gray-600">
-                            <span>Subtotal ({order.items.reduce((a, b) => a + b.quantity, 0)} barang)</span>
-                            <span>π {Number(order.total_price).toFixed(4)}</span>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-8 space-y-4 border-b border-gray-50">
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-400 font-black uppercase text-[10px] tracking-widest">Order Subtotal</span>
+                            <span className="font-black text-slate-800">π {Number(order.total_price).toFixed(4)}</span>
                         </div>
-                        <div className="flex justify-between text-gray-600">
-                            <span>Biaya Layanan Pi</span>
-                            <span className="text-green-600">Gratis</span>
-                        </div>
-                        <div className="flex justify-between font-black text-gray-800 text-base pt-2 border-t border-gray-200">
-                            <span>Total Dibayar</span>
-                            <span className="text-shopee">π {Number(order.total_price).toFixed(4)}</span>
+                        <div className="flex justify-between items-center">
+                            <span className="text-[10px] font-black uppercase text-slate-800 tracking-widest">Total Payment</span>
+                            <span className="text-2xl font-black text-shopee">π {Number(order.total_price).toFixed(4)}</span>
                         </div>
                     </div>
-
-                    {/* Footer CTA */}
-                    <div className="p-4 flex flex-col gap-3">
-                        {order.status === 'pending' && (
-                            <>
-                                <button
-                                    onClick={handlePay}
-                                    disabled={paying}
-                                    className={`w-full flex items-center justify-center gap-3 py-4 rounded-sm font-black text-base shadow-md transition-all active:scale-95
-                                        ${paying
-                                            ? 'bg-shopee/60 text-shopee-dark cursor-not-allowed'
-                                            : 'bg-shopee text-shopee-dark hover:bg-shopee-hover'}
-                                    `}
-                                >
-                                    {paying ? (
-                                        <>
-                                            <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-                                            </svg>
-                                            <span>Memproses Pembayaran...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24">
-                                                <path d="M11 2v4.22h-.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1H11v8.83c0 .61.49 1.1 1.1 1.1s1.1-.49 1.1-1.1V8.42h2.23c2.4 0 4.35 1.95 4.35 4.35s-1.95 4.35-4.35 4.35h-.8v2.2h.8c3.61 0 6.55-2.94 6.55-6.55s-2.94-6.55-6.55-6.55H13.2V2H11zm-5.45 6.42A1.1 1.1 0 0 0 4.45 9.5a1.1 1.1 0 0 0 1.1 1.11A1.1 1.1 0 0 0 6.64 9.5a1.1 1.1 0 0 0-1.09-1.08z"/>
-                                            </svg>
-                                            <span>Bayar Sekarang dengan Pi · π {Number(order.total_price).toFixed(4)}</span>
-                                        </>
-                                    )}
-                                </button>
-
-                                {payError && (
-                                    <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-sm p-3 font-medium">
-                                        ⚠️ {payError}
-                                    </div>
-                                )}
-                            </>
-                        )}
-
-                        <div className="flex gap-3">
-                            <Link href={route('orders.index')} className="flex-1 border border-gray-200 text-gray-500 text-center py-2.5 rounded-sm text-sm font-bold hover:bg-gray-50 transition-colors">
-                                Daftar Pesanan
+                    <div className="p-8 bg-gray-50/50 flex flex-col sm:flex-row justify-between gap-6 sm:items-center">
+                        <div className="text-[10px] font-black text-gray-400 space-y-1 uppercase tracking-widest">
+                            <p>Order Time: {new Date(order.created_at).toLocaleString('en-US')}</p>
+                            <p>Payment Method: Pi Network</p>
+                        </div>
+                        <div className="flex gap-4">
+                            <Link href={route('orders.index')} className="text-[10px] font-black text-slate-800 border-2 border-gray-200 px-6 py-3 rounded-xl hover:bg-white transition-all uppercase tracking-widest">
+                                Orders List
                             </Link>
-                            <Link href={route('dashboard')} className="flex-1 border border-shopee text-shopee text-center py-2.5 rounded-sm text-sm font-bold hover:bg-shopee/5 transition-colors">
-                                Lanjut Belanja
+                            {order.status === 'pending' && (
+                                <button
+                                    onClick={handlePayment}
+                                    disabled={loading}
+                                    className="bg-shopee text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-shopee-hover transition-all active:scale-95 shadow-lg shadow-shopee/20 disabled:bg-gray-300"
+                                >
+                                    {loading ? 'Processing...' : 'Pay Now'}
+                                </button>
+                            )}
+                            <Link href={route('dashboard')} className="bg-slate-800 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all active:scale-95 shadow-lg shadow-slate-800/20">
+                                Continue Shopping
                             </Link>
                         </div>
                     </div>
