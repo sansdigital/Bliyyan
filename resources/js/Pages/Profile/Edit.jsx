@@ -39,9 +39,15 @@ export default function Edit({ mustVerifyEmail, status, addresses }) {
                         <span className="text-[10px] font-bold bg-white/20 backdrop-blur px-2 py-1 rounded-full">
                             {user.is_admin ? '👑 Administrator' : '🛒 Pi Pioneer'}
                         </span>
-                        <span className="text-[10px] font-bold bg-white/20 backdrop-blur px-2 py-1 rounded-full">
-                            ✅ Pi Network Verified
-                        </span>
+                        {user.pi_uid ? (
+                            <span className="text-[10px] font-bold bg-emerald-500/40 backdrop-blur px-2 py-1 rounded-full border border-emerald-400/30 shadow-inner">
+                                ✅ Pi Network Verified
+                            </span>
+                        ) : (
+                            <span className="text-[10px] font-bold bg-slate-500/40 backdrop-blur px-2 py-1 rounded-full border border-slate-400/30 opacity-80">
+                                🔒 Unverified Visitor
+                            </span>
+                        )}
                     </div>
                 </div>
 

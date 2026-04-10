@@ -27,22 +27,38 @@ export default function Dashboard({ auth, products, stats }) {
             <div className="max-w-4xl mx-auto space-y-6 pb-20">
                 
                 {/* Hero / Profile Card */}
-                <div className="bg-gradient-to-r from-shopee to-shopee-hover rounded-2xl shadow-lg p-6 sm:p-8 text-white relative overflow-hidden">
+                <div className="bg-gradient-to-br from-shopee to-shopee-hover rounded-2xl p-6 text-white mb-6 shadow-lg relative overflow-hidden">
+                    <div className="absolute right-[-5%] bottom-[-20%] opacity-10 text-[120px] font-black italic select-none">π</div>
                     <div className="relative z-10 flex items-center gap-5">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/30 shadow-inner">
-                            <span className="text-2xl sm:text-3xl font-black uppercase tracking-tighter italic">
-                                {auth.user.name.charAt(0)}
-                            </span>
+                        {/* Avatar */}
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 backdrop-blur flex items-center justify-center text-2xl sm:text-3xl font-black ring-4 ring-white/30 shadow-inner">
+                            {(auth.user.name || 'U').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)}
                         </div>
                         <div>
-                            <h2 className="text-xl sm:text-2xl font-black tracking-tight">{auth.user.name}</h2>
-                            <p className="text-white/80 text-xs sm:text-sm font-medium mt-1">{auth.user.email}</p>
-                            {auth.user.is_admin && (
-                                <span className="mt-2 inline-block bg-white text-shopee text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest shadow-sm">
-                                    ADMIN ACCESS
-                                </span>
+                            <div className="text-xl sm:text-2xl font-black tracking-tight">{auth.user.name}</div>
+                            <div className="text-white/80 text-xs sm:text-sm font-medium">{auth.user.email}</div>
+                            {auth.user.pi_uid && (
+                                <div className="mt-2 inline-flex items-center gap-1.5 bg-white/20 backdrop-blur rounded-full px-3 py-1">
+                                    <span className="text-white/80 text-[10px] font-bold uppercase tracking-widest leading-none">Pi UID</span>
+                                    <span className="text-[11px] font-mono font-bold text-white truncate max-w-[120px] sm:max-w-[200px] leading-none">{auth.user.pi_uid}</span>
+                                </div>
                             )}
                         </div>
+                    </div>
+                    {/* Badges */}
+                    <div className="mt-4 flex gap-2 flex-wrap relative z-10">
+                        <span className="text-[10px] font-bold bg-white/20 backdrop-blur px-2 py-1 rounded-full flex items-center gap-1">
+                            {auth.user.is_admin ? '👑 Administrator' : '🛒 Pi Pioneer'}
+                        </span>
+                        {auth.user.pi_uid ? (
+                            <span className="text-[10px] font-bold bg-emerald-500/40 backdrop-blur px-2 py-1 rounded-full border border-emerald-400/30 shadow-inner flex items-center gap-1">
+                                ✅ Pi Network Verified
+                            </span>
+                        ) : (
+                            <span className="text-[10px] font-bold bg-slate-500/40 backdrop-blur px-2 py-1 rounded-full border border-slate-400/30 opacity-80 flex items-center gap-1">
+                                🔒 Unverified Visitor
+                            </span>
+                        )}
                     </div>
                 </div>
 
