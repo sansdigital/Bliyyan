@@ -45,7 +45,8 @@ const navSections = [
         items: [
             { label: 'Pi Orders',    icon: 'orders',    route: 'admin.orders.index',       match: 'admin.orders.*' },
             { label: 'Vouchers',     icon: 'vouchers',  route: 'admin.vouchers.index',     match: 'admin.vouchers.*' },
-            { label: 'Reports',      icon: 'reports',   route: 'admin.reports.index',      match: 'admin.reports.*' },
+            { label: 'Sales Report', icon: 'reports',   route: 'admin.reports.sales',      match: 'admin.reports.sales' },
+            { label: 'Analytics',    icon: 'groups',    route: 'admin.reports.index',      match: 'admin.reports.index' },
         ]
     },
     {
