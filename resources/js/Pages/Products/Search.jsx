@@ -27,7 +27,10 @@ function ProductCard({ product }) {
                         <span className="text-[10px]">π</span>
                         <span className="text-sm font-black">{Number(product.price)}</span>
                     </div>
-                    <div className="mt-1 text-[10px] text-gray-400">Stok: {product.stock}</div>
+                    <div className="mt-1 flex items-center justify-between">
+                        <span className="text-[10px] text-gray-400">Stok: {product.stock}</span>
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{product.distributor || 'Official'}</span>
+                    </div>
                 </div>
             </div>
         </Link>

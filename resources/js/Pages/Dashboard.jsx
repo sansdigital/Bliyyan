@@ -122,8 +122,9 @@ export default function Dashboard({ auth, products, stats }) {
                                         <span className="text-[10px] italic">π</span>
                                         <span className="text-sm">{Number(product.price)}</span>
                                     </div>
-                                    <div className="mt-1 flex items-center gap-1">
+                                    <div className="mt-1 flex items-center justify-between">
                                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{product.category?.name}</span>
+                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{product.distributor || 'Official'}</span>
                                     </div>
                                 </div>
                             </Link>

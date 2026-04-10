@@ -270,8 +270,8 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                                             <span className="text-[10px] sm:text-xs italic tracking-tighter">π</span>
                                             <span className="text-xs sm:text-base font-black">{Number(product.price)}</span>
                                         </div>
-                                        <div className="mt-1 text-[9px] text-gray-400 font-medium">
-                                            North Jakarta
+                                        <div className="mt-1 text-[9px] text-gray-400 font-medium truncate uppercase tracking-tighter">
+                                            {product.distributor || 'Official Store'}
                                         </div>
                                     </div>
                                 </div>

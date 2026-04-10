@@ -59,6 +59,7 @@ class AdminProductController extends Controller
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'distributor' => 'nullable|string|max:255',
         ]);
 
         $validated['slug'] = Str::slug($request->name);
@@ -101,6 +102,7 @@ class AdminProductController extends Controller
             'is_featured' => 'boolean',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
             'gallery.*' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'distributor' => 'nullable|string|max:255',
         ]);
 
         $validated['slug'] = Str::slug($request->name);

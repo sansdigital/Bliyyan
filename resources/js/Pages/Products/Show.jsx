@@ -172,6 +172,10 @@ export default function Show({ auth, product, can_review, active_order_id, addre
                                 <span className="text-sm">π</span>
                                 <span className="text-3xl font-bold">{Number(product.price)}</span>
                             </div>
+                            <div className="mt-2 flex items-center gap-2">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Distributor:</span>
+                                <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest bg-white px-2 py-0.5 rounded border border-gray-100">{product.distributor || 'Official Store'}</span>
+                            </div>
                         </div>
 
                         <div className="space-y-6 mb-8 py-6 border-y border-gray-50">

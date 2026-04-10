@@ -65,6 +65,7 @@ export default function Index({ auth, wishlistItems }) {
                                                 <span className="text-[10px] italic tracking-tighter">π</span>
                                                 <span className="text-sm font-black">{Number(item.product.price)}</span>
                                             </div>
+                                            <span className="text-[8px] font-black text-gray-300 uppercase tracking-widest truncate max-w-[80px] text-right">{item.product.distributor || 'Official'}</span>
                                         </div>
                                     </div>
                                 </Link>

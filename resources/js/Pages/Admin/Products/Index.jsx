@@ -47,6 +47,7 @@ export default function Index({ auth, products, categories, category_groups, fil
         is_featured: false,
         image: null,
         gallery: [],
+        distributor: '',
         _method: 'post',
     });
 
@@ -105,6 +106,7 @@ export default function Index({ auth, products, categories, category_groups, fil
             is_featured: product.is_featured,
             image: null,
             gallery: [],
+            distributor: product.distributor || '',
             _method: 'put',
         });
         setPreview(product.image
@@ -248,6 +250,7 @@ export default function Index({ auth, products, categories, category_groups, fil
                                 <th className="px-6 py-4 text-center">Group</th>
                                 <th className="px-6 py-4 text-center">Category</th>
                                 <th className="px-6 py-4 text-center">Price</th>
+                                <th className="px-6 py-4 text-center">Distributor</th>
                                 <th className="px-6 py-4 text-center">Stock</th>
                                 <th className="px-6 py-4 text-right">Action</th>
                             </tr>
@@ -305,6 +308,11 @@ export default function Index({ auth, products, categories, category_groups, fil
                                                 <span className="italic tracking-tighter text-shopee-gold pb-0.5">π</span>
                                                 {Number(product.price)}
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest bg-slate-100 px-3 py-1.5 rounded-lg border border-gray-100">
+                                                {product.distributor || 'Official'}
+                                            </span>
                                         </td>
                                         <td className="px-6 py-4 text-center">
                                             <div className="flex flex-col items-center gap-1">
@@ -463,6 +471,19 @@ export default function Index({ auth, products, categories, category_groups, fil
                                 placeholder="0"
                             />
                             {errors.stock && <div className="text-red-500 text-[10px] mt-1 font-bold uppercase ml-1">{errors.stock}</div>}
+                        </div>
+
+                        {/* Distributor */}
+                        <div className="md:col-span-2">
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Distributor *</label>
+                            <input
+                                type="text"
+                                value={data.distributor}
+                                onChange={e => setData('distributor', e.target.value)}
+                                className="w-full rounded-2xl border-gray-100 bg-slate-50 px-4 py-3 text-sm font-bold focus:ring-2 focus:ring-shopee-gold/20 transition-all border-none"
+                                placeholder="PT. Pi Network Indonesia"
+                            />
+                            {errors.distributor && <div className="text-red-500 text-[10px] mt-1 font-bold uppercase ml-1">{errors.distributor}</div>}
                         </div>
 
                         {/* Image Upload */}
