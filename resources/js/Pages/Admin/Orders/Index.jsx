@@ -252,10 +252,8 @@ export default function Index({ auth, orders }) {
                         <div className="hidden print:block border-b-2 border-slate-900 pb-8 mb-8">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="w-10 h-10 bg-shopee rounded-xl flex items-center justify-center">
-                                            <span className="text-xl font-black italic">B</span>
-                                        </div>
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <img src="/images/logonet.png" className="h-10 w-auto object-contain" alt="Bliyyan Logo" />
                                         <span className="text-2xl font-black tracking-tighter uppercase italic">Bliyyan</span>
                                     </div>
                                     <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
@@ -370,14 +368,27 @@ export default function Index({ auth, orders }) {
 
                     <style dangerouslySetInnerHTML={{ __html: `
                         @media print {
-                            body { background: white !important; }
-                            aside, nav, .no-print, header, footer, button { display: none !important; }
+                            @page { margin: 0; size: auto; }
+                            
+                            html, body { 
+                                height: auto !important; 
+                                overflow: visible !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                width: 100% !important;
+                            }
+
+                            aside, nav, .no-print, header, footer, button, .AdminModal-close { 
+                                display: none !important; 
+                            }
                             
                             main { 
                                 margin: 0 !important; 
                                 padding: 0 !important; 
                                 width: 100% !important;
                                 display: block !important;
+                                position: static !important;
+                                height: auto !important;
                             }
 
                             .AdminModal-overlay {
@@ -385,6 +396,8 @@ export default function Index({ auth, orders }) {
                                 padding: 0 !important;
                                 position: static !important;
                                 overflow: visible !important;
+                                display: block !important;
+                                height: auto !important;
                             }
 
                             .AdminModal-content {
@@ -395,15 +408,23 @@ export default function Index({ auth, orders }) {
                                 margin: 0 !important;
                                 padding: 0 !important;
                                 border-radius: 0 !important;
+                                position: static !important;
+                                transform: none !important;
                             }
 
                             #printable-invoice {
-                                padding: 20px !important;
+                                padding: 40px !important;
+                                width: 100% !important;
+                                height: auto !important;
+                                position: static !important;
                             }
 
                             .bg-slate-50 { background-color: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
-                            .bg-slate-900 { background-color: #0f172a !important; -webkit-print-color-adjust: exact; }
+                            .bg-slate-900 { background-color: #0f172a !important; -webkit-print-color-adjust: exact; color: white !important; }
                             .text-shopee-gold { color: #D4AF37 !important; -webkit-print-color-adjust: exact; }
+                            
+                            /* Force things onto one page if possible */
+                            * { overflow: visible !important; }
                         }
                     `}} />
                 </AdminModal>
