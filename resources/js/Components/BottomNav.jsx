@@ -14,7 +14,7 @@ export default function BottomNav({ active = 'home' }) {
                 </svg>
                 <span className="text-[10px] uppercase tracking-tighter">Home</span>
             </Link>
-            <Link href={route('categories.index')} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${route().current('categories.*') ? 'text-shopee' : 'text-gray-400'}`}>
+            <Link href={route('products.search')} className={`flex flex-col items-center justify-center w-full h-full transition-colors ${route().current('products.search') ? 'text-shopee' : 'text-gray-400'}`}>
                 <div className="mb-0.5">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
                 </div>
@@ -45,7 +45,7 @@ export default function BottomNav({ active = 'home' }) {
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                 </svg>
-                <span className="text-[10px] uppercase tracking-tighter">Akun</span>
+                <span className="text-[10px] uppercase tracking-tighter">Account</span>
             </Link>
         </nav>
     );
