@@ -375,56 +375,54 @@ export default function Index({ auth, orders }) {
                                 overflow: visible !important;
                                 margin: 0 !important;
                                 padding: 0 !important;
-                                width: 100% !important;
-                            }
-
-                            aside, nav, .no-print, header, footer, button, .AdminModal-close { 
-                                display: none !important; 
-                            }
-                            
-                            main { 
-                                margin: 0 !important; 
-                                padding: 0 !important; 
-                                width: 100% !important;
-                                display: block !important;
-                                position: static !important;
-                                height: auto !important;
-                            }
-
-                            .AdminModal-overlay {
                                 background: white !important;
-                                padding: 0 !important;
-                                position: static !important;
-                                overflow: visible !important;
-                                display: block !important;
-                                height: auto !important;
-                            }
-
-                            .AdminModal-content {
-                                max-width: 100% !important;
-                                width: 100% !important;
-                                border: none !important;
-                                box-shadow: none !important;
-                                margin: 0 !important;
-                                padding: 0 !important;
-                                border-radius: 0 !important;
-                                position: static !important;
-                                transform: none !important;
+                                visibility: hidden !important;
                             }
 
                             #printable-invoice {
-                                padding: 40px !important;
+                                visibility: visible !important;
+                                position: absolute !important;
+                                left: 0 !important;
+                                top: 0 !important;
                                 width: 100% !important;
                                 height: auto !important;
+                                margin: 0 !important;
+                                padding: 40px !important;
+                                display: block !important;
+                                background: white !important;
+                            }
+
+                            #printable-invoice * {
+                                visibility: visible !important;
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+
+                            /* Neutralize all parent containers and layouts */
+                            #app, main, div[class*="AdminModal"], div[class*="overlay"], div[class*="content"], div[class*="p-"] {
                                 position: static !important;
+                                display: block !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                width: 100% !important;
+                                height: auto !important;
+                                box-shadow: none !important;
+                                border: none !important;
+                                background: transparent !important;
+                                overflow: visible !important;
+                                transform: none !important;
+                                min-height: 0 !important;
+                                inset: auto !important;
+                            }
+
+                            .no-print, aside, nav, header, footer, button, .AdminModal-close { 
+                                display: none !important; 
+                                visibility: hidden !important;
                             }
 
                             .bg-slate-50 { background-color: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
-                            .bg-slate-900 { background-color: #0f172a !important; -webkit-print-color-adjust: exact; color: white !important; }
-                            .text-shopee-gold { color: #D4AF37 !important; -webkit-print-color-adjust: exact; }
-                            
-                            /* Force things onto one page if possible */
-                            * { overflow: visible !important; }
+                            .bg-slate-900 { background-color: #0f172a !important; color: white !important; }
+                            .text-shopee-gold { color: #D4AF37 !important; }
                         }
                     `}} />
                 </AdminModal>
