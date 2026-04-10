@@ -71,4 +71,16 @@ class AdminReportController extends Controller
             ]
         ]);
     }
+
+    public function sales()
+    {
+        $orders = Order::with(['user', 'items.product'])
+            ->where('status', 'paid')
+            ->latest()
+            ->get();
+
+        return Inertia::render('Admin/Reports/Sales', [
+            'orders' => $orders
+        ]);
+    }
 }

@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/orders/{order}/status', [\App\Http\Controllers\Admin\AdminOrderController::class, 'updateStatus'])->name('admin.orders.status');
         
         Route::get('/reports', [\App\Http\Controllers\Admin\AdminReportController::class, 'index'])->name('admin.reports.index');
+        Route::get('/reports/sales', [\App\Http\Controllers\Admin\AdminReportController::class, 'sales'])->name('admin.reports.sales');
         Route::resource('vouchers', \App\Http\Controllers\Admin\AdminVoucherController::class)->names('admin.vouchers');
         Route::delete('/products/image/{image}', [\App\Http\Controllers\Admin\AdminProductController::class, 'deleteImage'])->name('admin.products.image.delete');
     });
