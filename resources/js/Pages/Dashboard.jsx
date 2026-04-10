@@ -100,31 +100,35 @@ export default function Dashboard({ auth, products, stats }) {
                 <div className="pt-4">
                     <div className="flex items-center justify-between mb-4 px-2">
                         <h3 className="text-sm font-black text-gray-800 uppercase tracking-widest border-l-4 border-shopee pl-3">Recommended For You</h3>
-                        <Link href="/" className="text-[10px] text-shopee font-bold uppercase tracking-widest hover:underline">View Mall &rsaquo;</Link>
+                        <Link href="/" className="text-[10px] text-shopee font-black uppercase tracking-widest hover:underline">View All &rsaquo;</Link>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-3 sm:gap-4 px-2">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-6 px-2">
                         {products.map((product) => (
-                            <Link key={product.id} href={route('products.show', product.slug)} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group hover:shadow-md transition-all active:scale-95">
-                                <div className="relative aspect-square bg-gray-50/50 p-4">
+                            <Link key={product.id} href={route('products.show', product.slug)} className="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col hover:shadow-lg hover:border-shopee/20 transition-all duration-300 active:scale-95">
+                                <div className="relative aspect-square bg-gray-50/50 p-3 sm:p-4 overflow-hidden">
                                     <img 
                                         src={product.image ? (product.image.startsWith('http') ? product.image : `/storage/${product.image}`) : `https://dummyimage.com/400x400/f5f5f5/ee4d2d.png&text=?`} 
                                         alt={product.name} 
-                                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300" 
+                                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" 
                                     />
                                     {product.is_featured && (
-                                        <div className="absolute top-2 left-2 bg-shopee text-white text-[8px] font-black px-1.5 py-0.5 rounded-sm uppercase tracking-widest shadow-sm">MALL</div>
+                                        <div className="absolute top-0 left-0 bg-shopee text-white text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-br-sm uppercase leading-none">Mall</div>
                                     )}
                                 </div>
-                                <div className="p-3 flex flex-col flex-1">
-                                    <h4 className="text-xs font-bold text-gray-800 line-clamp-2 h-8 leading-snug group-hover:text-shopee transition-colors">{product.name}</h4>
-                                    <div className="mt-2 flex items-baseline gap-0.5 text-shopee font-black">
-                                        <span className="text-[10px] italic">π</span>
-                                        <span className="text-sm">{Number(product.price)}</span>
-                                    </div>
-                                    <div className="mt-1 flex items-center justify-between">
-                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{product.category?.name}</span>
-                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{product.distributor || 'Official'}</span>
+                                <div className="p-2 sm:p-3 flex flex-col flex-1">
+                                    <h4 className="text-[11px] sm:text-sm text-gray-800 line-clamp-2 h-8 sm:h-10 mb-1 sm:mb-2 leading-tight group-hover:text-shopee transition-colors">{product.name}</h4>
+                                    <div className="mt-auto">
+                                        <div className="flex items-baseline gap-0.5 text-shopee font-bold">
+                                            <span className="text-[10px] sm:text-xs italic tracking-tighter">π</span>
+                                            <span className="text-xs sm:text-base font-black">{Number(product.price)}</span>
+                                        </div>
+                                        <div className="mt-1 flex items-center justify-between">
+                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">{product.category?.name}</span>
+                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                                                {product.distributor || 'Official Store'}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </Link>
