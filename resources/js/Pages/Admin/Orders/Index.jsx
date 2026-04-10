@@ -256,7 +256,14 @@ export default function Index({ auth, orders }) {
                                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-800">Customer Info</span>
                                 </div>
                                 <p className="text-sm font-bold text-slate-800 leading-tight">{viewDetailsModal.user?.name}</p>
-                                <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-tighter">{viewDetailsModal.user?.email}</p>
+                                <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-tighter mb-4">{viewDetailsModal.user?.email}</p>
+                                
+                                <div className="pt-3 border-t border-slate-200/60">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 block mb-1.5">Shipping Address</span>
+                                    <p className="text-[10px] font-medium text-slate-600 leading-relaxed whitespace-pre-line">
+                                        {viewDetailsModal.shipping_address || '-'}
+                                    </p>
+                                </div>
                             </div>
                             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                                 <div className="flex items-center gap-2 mb-3">
