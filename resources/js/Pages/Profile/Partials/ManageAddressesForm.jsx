@@ -8,7 +8,6 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
     const [editingAddress, setEditingAddress] = useState(null);
 
     const { data, setData, post, put, delete: destroy, processing, reset, errors } = useForm({
-        code_reg: '',
         label: '',
         recipient_name: '',
         phone_number: '',
@@ -29,7 +28,6 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
     const openEdit = (address) => {
         setEditingAddress(address);
         setData({
-            code_reg: address.code_reg || '',
             label: address.label || '',
             recipient_name: address.recipient_name,
             phone_number: address.phone_number || '',
@@ -96,17 +94,6 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
             {isAdding ? (
                 <form onSubmit={handleSubmit} className="space-y-4 bg-gray-50 p-6 rounded-2xl border border-gray-100">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2 md:col-span-1">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
-                                CODE REG <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
-                            </label>
-                            <input 
-                                value={data.code_reg}
-                                onChange={e => setData('code_reg', e.target.value)}
-                                className="w-full rounded-lg border-gray-200 text-sm focus:ring-shopee focus:border-shopee"
-                                placeholder="E.g. REG-12345"
-                            />
-                        </div>
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 items-center flex gap-1">
                                 Label Alamat <span className="text-[8px] font-normal opacity-60 text-gray-500 italic">(Optional)</span>
@@ -231,7 +218,6 @@ export default function ManageAddressesForm({ addresses = [], className = '' }) 
                                     {address.city ? address.city + ', ' : ''}
                                     {address.province}
                                     {address.postal_code ? ' ' + address.postal_code : ''}
-                                    {address.code_reg ? ` (${address.code_reg})` : ''}
                                 </p>
                                 <div className="flex items-center gap-4">
                                     <button onClick={() => openEdit(address)} className="text-[10px] font-black text-gray-400 hover:text-shopee uppercase tracking-widest transition-colors">Edit</button>
