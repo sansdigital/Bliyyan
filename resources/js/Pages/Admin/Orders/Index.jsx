@@ -247,7 +247,33 @@ export default function Index({ auth, orders }) {
                     subtitle={`Order ID: #${String(viewDetailsModal.id).padStart(4, '0')}`}
                     size="lg"
                 >
-                    <div className="p-2 space-y-6">
+                    <div className="p-2 space-y-6" id="printable-invoice">
+                        {/* Professional Invoice Header (Print Only) */}
+                        <div className="hidden print:block border-b-2 border-slate-900 pb-8 mb-8">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="w-10 h-10 bg-shopee rounded-xl flex items-center justify-center">
+                                            <span className="text-xl font-black italic">B</span>
+                                        </div>
+                                        <span className="text-2xl font-black tracking-tighter uppercase italic">Bliyyan</span>
+                                    </div>
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
+                                        Official Pi Network Marketplace<br />
+                                        Jakarta, Indonesia<br />
+                                        www.bliyyan.net
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight mb-1">Invoice</h2>
+                                    <p className="text-sm font-bold text-slate-600 uppercase tracking-widest">#{String(viewDetailsModal.id).padStart(4, '0')}</p>
+                                    <p className="text-[10px] text-gray-400 font-bold mt-2 uppercase tracking-tighter">
+                                        Date: {new Date(viewDetailsModal.created_at).toLocaleDateString()}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Customer Info */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
@@ -324,7 +350,7 @@ export default function Index({ auth, orders }) {
                             </div>
                         )}
 
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 no-print">
                             <button 
                                 onClick={() => setViewDetailsModal(null)}
                                 className="flex-1 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl font-bold text-xs uppercase tracking-widest transition-all"
@@ -334,13 +360,52 @@ export default function Index({ auth, orders }) {
                             <button 
                                 className="flex-1 py-3 bg-slate-900 hover:bg-black text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-black/10 transition-all flex items-center justify-center gap-2"
                                 onClick={() => {
-                                    window.print(); // Simple print or specific PDF action
+                                    window.print();
                                 }}
                             >
                                 <Eye className="w-4 h-4" /> Print Invoice
                             </button>
                         </div>
                     </div>
+
+                    <style dangerouslySetInnerHTML={{ __html: `
+                        @media print {
+                            body { background: white !important; }
+                            aside, nav, .no-print, header, footer, button { display: none !important; }
+                            
+                            main { 
+                                margin: 0 !important; 
+                                padding: 0 !important; 
+                                width: 100% !important;
+                                display: block !important;
+                            }
+
+                            .AdminModal-overlay {
+                                background: white !important;
+                                padding: 0 !important;
+                                position: static !important;
+                                overflow: visible !important;
+                            }
+
+                            .AdminModal-content {
+                                max-width: 100% !important;
+                                width: 100% !important;
+                                border: none !important;
+                                box-shadow: none !important;
+                                margin: 0 !important;
+                                padding: 0 !important;
+                                border-radius: 0 !important;
+                            }
+
+                            #printable-invoice {
+                                padding: 20px !important;
+                            }
+
+                            .bg-slate-50 { background-color: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
+                            .bg-slate-900 { background-color: #0f172a !important; -webkit-print-color-adjust: exact; }
+                            .text-shopee-gold { color: #D4AF37 !important; -webkit-print-color-adjust: exact; }
+                        }
+                    `}} />
                 </AdminModal>
             )}
 
