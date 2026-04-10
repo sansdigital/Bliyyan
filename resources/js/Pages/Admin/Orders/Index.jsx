@@ -5,23 +5,12 @@ import { useState, useMemo } from 'react';
 import axios from 'axios';
 import { useToast } from '@/Components/Toast';
 import { 
-    Search, 
-    Plus, 
-    Pencil, 
-    Trash2, 
-    Eye, 
-    CreditCard, 
-    Wallet, 
-    Package, 
-    ChevronLeft, 
-    ChevronRight,
-    Calendar,
-    User,
-    CheckCircle2,
-    XCircle,
-    Info,
-    Truck
+    Truck,
+    Download,
+    FileText,
+    Filter
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
 
 const STATUS_CONFIG = {
     pending:    { label: 'Pending',    color: 'bg-orange-50 text-orange-600 border-orange-100' },
@@ -42,6 +31,9 @@ export default function Index({ auth, orders }) {
     const [localOrders, setLocalOrders] = useState(orders);
     const [viewDetailsModal, setViewDetailsModal] = useState(null);
     const [trackingModal, setTrackingModal] = useState(null);
+    const [filterDay, setFilterDay] = useState('all');
+    const [filterMonth, setFilterMonth] = useState('all');
+    const [filterYear, setFilterYear] = useState('all');
 
     const handleStatusUpdate = async (orderId, newStatus, trackingNum = null, courier = null) => {
         setUpdatingId(orderId);
@@ -190,9 +182,24 @@ export default function Index({ auth, orders }) {
 
     const filteredOrders = useMemo(() => {
         let result = localOrders;
+        
+        // Status Filter
         if (filterStatus !== 'all') {
             result = result.filter(o => o.status === filterStatus);
         }
+
+        // Date Filters
+        if (filterDay !== 'all') {
+            result = result.filter(o => new Date(o.created_at).getDate() === parseInt(filterDay));
+        }
+        if (filterMonth !== 'all') {
+            result = result.filter(o => new Date(o.created_at).getMonth() === parseInt(filterMonth));
+        }
+        if (filterYear !== 'all') {
+            result = result.filter(o => new Date(o.created_at).getFullYear() === parseInt(filterYear));
+        }
+
+        // Search Query
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
             result = result.filter(o => 
@@ -202,7 +209,34 @@ export default function Index({ auth, orders }) {
             );
         }
         return result;
-    }, [localOrders, filterStatus, searchQuery]);
+    }, [localOrders, filterStatus, searchQuery, filterDay, filterMonth, filterYear]);
+
+    const handleExportExcel = () => {
+        const exportData = filteredOrders.map(o => ({
+            'Order Id': `#${String(o.id).padStart(4, '0')}`,
+            'Billing Name': o.user?.name || 'Guest',
+            'Date': new Date(o.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+            'Address': o.shipping_address || '-',
+            'Total': `π ${Number(o.total_price)}`
+        }));
+
+        const ws = XLSX.utils.json_to_sheet(exportData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Orders");
+        
+        // Auto-width for columns
+        const maxWidths = exportData.reduce((acc, row) => {
+            Object.keys(row).forEach((key, i) => {
+                const val = String(row[key]);
+                acc[i] = Math.max(acc[i] || 0, val.length, key.length);
+            });
+            return acc;
+        }, []);
+        ws['!cols'] = maxWidths.map(w => ({ wch: w + 2 }));
+
+        XLSX.writeFile(wb, `Bliyyan_Orders_${new Date().toISOString().split('T')[0]}.xlsx`);
+        toast.success("Excel exported successfully!");
+    };
 
     const Pagination = () => {
         // Since orders is likely just a plain array here (based on previous code), 
@@ -248,23 +282,116 @@ export default function Index({ auth, orders }) {
                 </div>
             </div>
 
-            {/* Control Bar */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-                <div className="relative w-full sm:w-64 group">
-                    <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                        <Search className="w-4 h-4 text-gray-400 group-focus-within:text-shopee-gold transition-colors" />
+            {/* Enhanced Control Bar */}
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 space-y-4">
+                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    {/* Search & Export */}
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+                        <div className="relative w-full sm:w-64 group">
+                            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <Search className="w-4 h-4 text-gray-400 group-focus-within:text-shopee-gold transition-colors" />
+                            </div>
+                            <input 
+                                type="text" 
+                                placeholder="Search by ID or Name..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full bg-slate-50 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-shopee-gold/20 transition-all"
+                            />
+                        </div>
+                        <button 
+                            onClick={handleExportExcel}
+                            className="w-full sm:w-auto px-5 py-2.5 bg-slate-900 border border-slate-800 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-all active:scale-95 shadow-lg shadow-black/10"
+                        >
+                            <Download className="w-4 h-4" /> Export Excel
+                        </button>
                     </div>
-                    <input 
-                        type="text" 
-                        placeholder="Search..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-50 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-shopee-gold/20 transition-all"
-                    />
+
+                    {/* Status Quick Filters */}
+                    <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 mr-1 hidden sm:block">Status:</span>
+                        {[
+                            { id: 'all', label: 'All', color: 'bg-slate-100 text-slate-600' },
+                            { id: 'paid', label: 'Paid', color: 'bg-emerald-100 text-emerald-700' },
+                            { id: 'pending', label: 'Pending', color: 'bg-orange-100 text-orange-700' },
+                            { id: 'cancelled', label: 'Cancelled', color: 'bg-red-100 text-red-700' },
+                        ].map(btn => (
+                            <button
+                                key={btn.id}
+                                onClick={() => setFilterStatus(btn.id)}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                                    filterStatus === btn.id 
+                                    ? `${btn.color} ring-2 ring-offset-1 ring-${btn.color.split('-')[1]}-200` 
+                                    : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                                }`}
+                            >
+                                {btn.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
-                <button className="w-full sm:w-auto px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all active:scale-95">
-                    <Plus className="w-4 h-4" /> Add New Order
-                </button>
+
+                {/* Date Specific Filters */}
+                <div className="pt-4 border-t border-slate-50 flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-shopee-gold" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Specific Date:</span>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {/* Day Dropdown */}
+                        <select 
+                            value={filterDay}
+                            onChange={(e) => setFilterDay(e.target.value)}
+                            className="bg-slate-50 border-none rounded-lg text-[10px] font-bold uppercase tracking-widest focus:ring-shopee-gold/20 py-2 pl-3 pr-8"
+                        >
+                            <option value="all">Day</option>
+                            {Array.from({ length: 31 }, (_, i) => (
+                                <option key={i+1} value={i+1}>{i+1}</option>
+                            ))}
+                        </select>
+
+                        {/* Month Dropdown */}
+                        <select 
+                            value={filterMonth}
+                            onChange={(e) => setFilterMonth(e.target.value)}
+                            className="bg-slate-50 border-none rounded-lg text-[10px] font-bold uppercase tracking-widest focus:ring-shopee-gold/20 py-2 pl-3 pr-8"
+                        >
+                            <option value="all">Month</option>
+                            {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => (
+                                <option key={m} value={i}>{m}</option>
+                            ))}
+                        </select>
+
+                        {/* Year Dropdown */}
+                        <select 
+                            value={filterYear}
+                            onChange={(e) => setFilterYear(e.target.value)}
+                            className="bg-slate-50 border-none rounded-lg text-[10px] font-bold uppercase tracking-widest focus:ring-shopee-gold/20 py-2 pl-3 pr-8"
+                        >
+                            <option value="all">Year</option>
+                            {Array.from({ length: 5 }, (_, i) => {
+                                const y = new Date().getFullYear() - i;
+                                return <option key={y} value={y}>{y}</option>;
+                            })}
+                        </select>
+
+                        {(filterDay !== 'all' || filterMonth !== 'all' || filterYear !== 'all' || filterStatus !== 'all') && (
+                            <button 
+                                onClick={() => {
+                                    setFilterDay('all');
+                                    setFilterMonth('all');
+                                    setFilterYear('all');
+                                    setFilterStatus('all');
+                                    setSearchQuery('');
+                                }}
+                                className="text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline ml-2"
+                            >
+                                Reset Filters
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Table Area */}
@@ -330,7 +457,7 @@ export default function Index({ auth, orders }) {
                                                 </button>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="flex justify-end gap-2 pr-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex justify-end gap-2 pr-1 transition-opacity">
                                                     <button 
                                                         className="p-1.5 text-blue-400 hover:bg-blue-50 rounded-lg transition-colors"
                                                         onClick={() => {
