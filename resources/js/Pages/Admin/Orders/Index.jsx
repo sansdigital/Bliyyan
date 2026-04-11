@@ -1,7 +1,7 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import AdminModal from '@/Components/AdminModal';
 import { Head, Link, router } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import axios from 'axios';
 import { useToast } from '@/Components/Toast';
 import { 
@@ -44,6 +44,22 @@ export default function Index({ auth, orders }) {
     const [filterDay, setFilterDay] = useState('all');
     const [filterMonth, setFilterMonth] = useState('all');
     const [filterYear, setFilterYear] = useState('all');
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
+
+    const handleDelete = (orderId) => {
+        if (!confirm(`Apakah Anda yakin ingin menghapus Pesanan #${String(orderId).padStart(4, '0')}? Tindakan ini permanen.`)) return;
+        
+        router.delete(route('admin.orders.destroy', orderId), {
+            onSuccess: () => {
+                setLocalOrders(prev => prev.filter(o => o.id !== orderId));
+                toast.success('Order deleted permanently.');
+            },
+            onError: () => toast.error('Failed to delete order.')
+        });
+    };
 
     const handleStatusUpdate = async (orderId, newStatus, trackingNum = null, courier = null) => {
         setUpdatingId(orderId);
@@ -279,6 +295,19 @@ export default function Index({ auth, orders }) {
         return result;
     }, [localOrders, filterStatus, searchQuery, filterDay, filterMonth, filterYear]);
 
+    // Derived Paginated Data
+    const paginatedOrders = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredOrders, currentPage]);
+
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+    // Reset to page 1 when filters change using useEffect (more stable)
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filterStatus, searchQuery, filterDay, filterMonth, filterYear, localOrders.length]);
+
     const handleExportExcel = () => {
         const exportData = filteredOrders.map(o => ({
             'Order Id': `#${String(o.id).padStart(4, '0')}`,
@@ -510,7 +539,7 @@ export default function Index({ auth, orders }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {filteredOrders.length === 0 ? (
+                            {paginatedOrders.length === 0 ? (
                                 <tr>
                                     <td colSpan={8} className="py-20 text-center">
                                         <Package className="w-12 h-12 text-gray-200 mx-auto mb-4" />
@@ -518,7 +547,7 @@ export default function Index({ auth, orders }) {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredOrders.map((order) => {
+                                paginatedOrders.map((order) => {
                                     const statusConf = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
                                     return (
                                         <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group">
@@ -567,7 +596,10 @@ export default function Index({ auth, orders }) {
                                                     >
                                                         <Pencil className="w-3.5 h-3.5" />
                                                     </button>
-                                                    <button className="p-1.5 text-red-300 hover:bg-red-50 rounded-lg transition-colors">
+                                                    <button 
+                                                        onClick={() => handleDelete(order.id)}
+                                                        className="p-1.5 text-red-300 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors"
+                                                    >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
                                                 </div>
@@ -581,7 +613,44 @@ export default function Index({ auth, orders }) {
                 </div>
             </div>
 
-            <Pagination />
+            <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 px-2">
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Showing {paginatedOrders.length} of {filteredOrders.length} Results
+                </div>
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="p-2 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-shopee-gold disabled:opacity-30 transition-all active:scale-90"
+                    >
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    
+                    <div className="flex items-center gap-1">
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                            <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={`w-9 h-9 rounded-xl text-[10px] font-black transition-all active:scale-90 ${
+                                    currentPage === page 
+                                    ? 'bg-shopee-gold text-slate-900 shadow-lg shadow-shopee-gold/20' 
+                                    : 'bg-white border border-gray-100 text-gray-400 hover:bg-slate-50'
+                                }`}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                    </div>
+
+                    <button 
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className="p-2 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-shopee-gold disabled:opacity-30 transition-all active:scale-90"
+                    >
+                        <ChevronRight className="w-5 h-5" />
+                    </button>
+                </div>
+            </div>
 
             {/* View Details Modal */}
             {viewDetailsModal && (

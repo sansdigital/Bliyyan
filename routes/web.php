@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/orders/{order}/status', [\App\Http\Controllers\Admin\AdminOrderController::class, 'updateStatus'])->name('admin.orders.status');
         Route::post('/orders/{order}/refund', [\App\Http\Controllers\Admin\AdminOrderController::class, 'refund'])->name('admin.orders.refund');
         Route::post('/orders/pi-sync', [\App\Http\Controllers\Admin\AdminOrderController::class, 'syncStuckPayment'])->name('admin.orders.pi-sync');
+        Route::delete('/orders/{order}', [\App\Http\Controllers\Admin\AdminOrderController::class, 'destroy'])->name('admin.orders.destroy');
         
         Route::get('/reports', [\App\Http\Controllers\Admin\AdminReportController::class, 'index'])->name('admin.reports.index');
         Route::get('/reports/sales', [\App\Http\Controllers\Admin\AdminReportController::class, 'sales'])->name('admin.reports.sales');

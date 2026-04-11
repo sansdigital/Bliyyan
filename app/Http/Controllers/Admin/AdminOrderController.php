@@ -209,4 +209,26 @@ class AdminOrderController extends Controller
             return response()->json(['error' => 'Gagal membersihkan antrean: ' . $e->getMessage()], 500);
         }
     }
+
+    public function destroy(Order $order)
+    {
+        try {
+            DB::transaction(function () use ($order) {
+                // Delete related items first
+                $order->items()->delete();
+                
+                // Delete related payment if exists
+                if ($order->payment) {
+                    $order->payment->delete();
+                }
+                
+                $order->delete();
+            });
+
+            return redirect()->back()->with('success', 'Order #' . str_pad($order->id, 4, '0', STR_PAD_LEFT) . ' has been permanently deleted.');
+        } catch (\Exception $e) {
+            Log::error("Delete Error Order #{$order->id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to delete order.');
+        }
+    }
 }
