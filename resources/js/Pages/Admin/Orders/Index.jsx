@@ -382,29 +382,26 @@ export default function Index({ auth, orders }) {
 
             {/* Stuck Payment Recovery Alert */}
             {stuckPaymentId && (
-                <div className="bg-red-50 border-2 border-red-200 p-6 rounded-3xl mb-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in duration-300">
-                    <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0 shadow-inner">
-                            <AlertCircle className="w-8 h-8" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-black text-red-900 uppercase tracking-tight">Antrean Wallet Pi Tersumbat</h3>
-                            <p className="text-sm text-red-600 font-bold leading-relaxed">Ada transaksi yang belum selesai (ID: <span className="font-mono bg-red-100 px-2 rounded">{stuckPaymentId}</span>).<br/>Sistem tidak bisa melakukan refund baru sampai transaksi ini dibereskan.</p>
-                        </div>
+                <div className="mb-8 p-6 bg-red-50 border-2 border-red-200 rounded-3xl flex flex-col md:flex-row items-center gap-6 shadow-xl shadow-red-500/10 animate-pulse-subtle">
+                    <div className="w-16 h-16 bg-red-500 rounded-2xl flex items-center justify-center shadow-lg shadow-red-500/40 shrink-0">
+                        <AlertCircle className="w-10 h-10 text-white" />
+                    </div>
+                    <div className="flex-1 text-center md:text-left">
+                        <h2 className="text-xl font-black text-red-600 uppercase tracking-tighter mb-1">ANTREAN WALLET PI TERSUMBAT</h2>
+                        <p className="text-xs font-bold text-red-500/80 leading-relaxed max-w-2xl">
+                            Ada transaksi lama yang masih menggantung di server Pi Network (ID: <code className="bg-red-100 px-2 py-0.5 rounded text-red-700 break-all">{stuckPaymentId}</code>). 
+                            Jalur ini harus dibersihkan agar Anda bisa mengirim Refund baru. <span className="underline italic">Ini adalah antrean di Dompet Pi, bukan di database website.</span>
+                        </p>
                     </div>
                     <button 
                         onClick={() => handleSyncStuckPayment(stuckPaymentId)}
                         disabled={updatingId === 'sync'}
-                        className="w-full md:w-auto px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-red-600/30 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                        className="px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg shadow-red-600/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-3"
                     >
-                        {updatingId === 'sync' ? (
+                        {updatingId === 'sync' ? 'Proses...' : (
                             <>
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                Cleaning...
-                            </>
-                        ) : (
-                            <>
-                                <CheckCircle2 className="w-4 h-4" /> Bersihkan Antrean
+                                <CheckCircle2 className="w-5 h-5" />
+                                BERSIHKAN ANTREAN
                             </>
                         )}
                     </button>
