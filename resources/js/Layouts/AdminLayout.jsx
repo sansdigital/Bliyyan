@@ -17,6 +17,7 @@ const icons = {
     orders:    'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
     reports:   'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
     vouchers:  'M15 5v2m0 4v2m0 4v2M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2V5z',
+    reward:    'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
     website:   'M3 12a9 9 0 1118 0 9 9 0 01-18 0m9-9v18M3 12h18M4.5 4.5C6.333 7 7.5 9.5 7.5 12s-1.167 5-2.958 7.5M19.5 4.5C17.667 7 16.5 9.5 16.5 12s1.167 5 2.958 7.5',
     menu:      'M4 6h16M4 12h16m-7 6h7',
     close:     'M6 18L18 6M6 6l12 12',
@@ -45,8 +46,9 @@ const navSections = [
         items: [
             { label: 'Pi Orders',    icon: 'orders',    route: 'admin.orders.index',       match: 'admin.orders.*' },
             { label: 'Vouchers',     icon: 'vouchers',  route: 'admin.vouchers.index',     match: 'admin.vouchers.*' },
+            { label: 'A2U Rewards',  icon: 'reward',    route: 'admin.rewards.index',      match: 'admin.rewards.*' },
             { label: 'Sales Report', icon: 'reports',   route: 'admin.reports.sales',      match: 'admin.reports.sales' },
-            { label: 'Analytics',    icon: 'groups',    route: 'admin.reports.index',      match: 'admin.reports.index' },
+            { label: 'Analytics',   icon: 'groups',    route: 'admin.reports.index',      match: 'admin.reports.index' },
         ]
     },
     {
