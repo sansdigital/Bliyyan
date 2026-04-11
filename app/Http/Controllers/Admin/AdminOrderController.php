@@ -100,6 +100,11 @@ class AdminOrderController extends Controller
                 // Update Order Status
                 $order->update(['status' => 'refunded']);
 
+                // Update associated Payment status to prevent auto-sync issues
+                if ($order->payment) {
+                    $order->payment->update(['status' => 'refunded']);
+                }
+
                 return back()->with('success', "Refund senilai π{$order->total_price} berhasil dikirim ke user.");
             }
 
