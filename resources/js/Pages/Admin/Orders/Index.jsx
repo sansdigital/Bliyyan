@@ -598,9 +598,10 @@ export default function Index({ auth, orders }) {
                                                     </button>
                                                     <button 
                                                         onClick={() => handleDelete(order.id)}
-                                                        className="p-1.5 text-red-300 hover:bg-red-50 hover:text-red-500 rounded-lg transition-colors"
+                                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors group/del"
+                                                        title="Delete Order"
                                                     >
-                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             </td>
