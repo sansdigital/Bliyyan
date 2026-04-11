@@ -21,7 +21,7 @@ export default function Login({ status, canResetPassword }) {
                 throw new Error("Pi Network SDK not detected. Please open this site via 'Pi Browser' on your phone.");
             }
 
-            const scopes = ['username', 'payments'];
+            const scopes = ['username', 'payments', 'wallet_address'];
             const onIncompletePaymentFound = (payment) => {
                 console.log("Incomplete payment found:", payment);
                 // Optional: You can handle incomplete payments here if needed

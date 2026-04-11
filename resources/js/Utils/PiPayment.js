@@ -9,7 +9,7 @@ const ensurePaymentsScope = async () => {
         throw new Error("Buka melalui Pi Browser untuk melakukan pembayaran.");
     }
 
-    const scopes = ['username', 'payments'];
+    const scopes = ['username', 'payments', 'wallet_address'];
     await window.Pi.authenticate(scopes, async (payment) => {
         console.log("Incomplete payment found:", payment);
         try {
