@@ -127,6 +127,8 @@ class AdminOrderController extends Controller
             Log::error("Refund Critical Error Order #{$order->id}: " . $e->getMessage());
             return response()->json(['error' => 'Gagal memproses refund: ' . $e->getMessage()], 500);
         }
+    }
+
     public function syncStuckPayment(Request $request)
     {
         $request->validate([
