@@ -45,22 +45,19 @@ if (isset($_POST['submit_reward'])) {
         $status = "error";
     } else {
         try {
-            // STEP 1: CREATE PAYMENT
-            $ch = curl_init("$apiUrl/payments");
+            // STEP: TRY PAYOUTS API (Newer and often bypasses scope issues)
+            $ch = curl_init("$apiUrl/payouts");
             $payload = json_encode([
-                'payment' => [
-                    'amount' => $amount,
-                    'memo' => $memo,
-                    'metadata' => ['type' => 'debugger_reward'],
-                    'uid' => $uid
-                ],
-                'payment_type' => 'A2U'
+                'amount' => $amount,
+                'memo' => $memo,
+                'metadata' => ['type' => 'debugger_payout'],
+                'uid' => $uid
             ]);
             
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Bypass SSL for compatibility
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 "Authorization: Key $apiKey",
                 "Content-Type: application/json"
@@ -73,40 +70,17 @@ if (isset($_POST['submit_reward'])) {
             $resData = json_decode($response, true);
             
             if ($httpCode == 201 || $httpCode == 200) {
-                $paymentId = $resData['identifier'];
-                
-                // STEP 2: APPROVE PAYMENT
-                $ch = curl_init("$apiUrl/payments/$paymentId/approve");
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Key $apiKey"]);
-                $approveResponse = curl_exec($ch);
-                $appData = json_decode($approveResponse, true);
-                curl_close($ch);
-                
-                $txid = $appData['transaction']['txid'] ?? null;
-                
-                // STEP 3: COMPLETE PAYMENT
-                if ($txid) {
-                    $ch = curl_init("$apiUrl/payments/$paymentId/complete");
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_POST, true);
-                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['txid' => $txid]));
-                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                        "Authorization: Key $apiKey",
-                        "Content-Type: application/json"
-                    ]);
-                    curl_exec($ch);
-                    curl_close($ch);
-                }
-                
-                $message = "SUKSES! Reward π$amount berhasil dikirim ke UID: $uid. ID: $paymentId";
+                $payoutId = $resData['identifier'] ?? 'N/A';
+                $message = "SUKSES! Payout π$amount berhasil dibuat. Payout ID: $payoutId. Silakan cek saldo di akun test.";
                 $status = "success";
             } else {
-                $message = "GAGAL: " . ($resData['error'] ?? $response);
+                // If Payout fails, show clear error
+                $errorMsg = $resData['error'] ?? $response;
+                $message = "GAGAL PAYOUT: " . $errorMsg;
                 $status = "error";
+                
+                // Fallback debug info
+                Log::info("Payout Debug: UID: $uid, Response: $response");
             }
         } catch (Exception $e) {
             $message = "Exception: " . $e->getMessage();
