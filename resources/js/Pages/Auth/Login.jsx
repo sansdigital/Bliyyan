@@ -24,9 +24,13 @@ export default function Login({ status, canResetPassword }) {
             const scopes = ['username', 'payments'];
             const onIncompletePaymentFound = (payment) => {
                 console.log("Incomplete payment found:", payment);
+                // Optional: You can handle incomplete payments here if needed
+                axios.post(route('pi.approve'), { paymentId: payment.identifier });
             };
 
+            console.log("Requesting Pi Authentication with scopes:", scopes);
             const auth = await window.Pi.authenticate(scopes, onIncompletePaymentFound);
+            console.log("Pi Auth Success:", auth.user.uid);
             
             // Send auth data to our backend
             axios.post(route('pi.auth'), {
