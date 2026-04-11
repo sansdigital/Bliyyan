@@ -127,5 +127,57 @@ class AdminOrderController extends Controller
             Log::error("Refund Critical Error Order #{$order->id}: " . $e->getMessage());
             return response()->json(['error' => 'Gagal memproses refund: ' . $e->getMessage()], 500);
         }
+    public function syncStuckPayment(Request $request)
+    {
+        $request->validate([
+            'payment_id' => 'required|string'
+        ]);
+
+        $paymentId = $request->payment_id;
+        $apiKey = config('services.pi.api_key');
+        $apiUrl = config('services.pi.api_url');
+
+        try {
+            Log::info("MANUAL SYNC: Attempting to clear stuck payment $paymentId");
+
+            // 1. Get payment info to see status
+            $getResponse = Http::withoutVerifying()
+                ->withHeader('Authorization', 'Key ' . $apiKey)
+                ->get("{$apiUrl}/payments/{$paymentId}");
+
+            if ($getResponse->failed()) {
+                throw new \Exception("Fetch Stuck Payment Failed: " . $getResponse->body());
+            }
+
+            $paymentData = $getResponse->json();
+
+            // 2. If already approved but not completed, try to complete
+            if (isset($paymentData['status']['developer_approved']) && $paymentData['status']['developer_approved'] === true) {
+                
+                // For A2U, if we don't have TXID, approval usually initiated it
+                $txid = $paymentData['transaction']['txid'] ?? 'RECOVERY-' . time();
+
+                $completeResponse = Http::withoutVerifying()
+                    ->withHeader('Authorization', 'Key ' . $apiKey)
+                    ->post("{$apiUrl}/payments/{$paymentId}/complete", [
+                        'txid' => $txid
+                    ]);
+
+                if ($completeResponse->successful()) {
+                    return response()->json(['success' => "Payment $paymentId successfully SYNCED and cleared."]);
+                }
+            }
+
+            // 3. Fallback: If not approved, try to cancel it
+            $cancelResponse = Http::withoutVerifying()
+                ->withHeader('Authorization', 'Key ' . $apiKey)
+                ->post("{$apiUrl}/payments/{$paymentId}/cancel");
+
+            return response()->json(['success' => "Stuck payment $paymentId handled. Please try your refund again."]);
+
+        } catch (\Exception $e) {
+            Log::error("Manual Sync Error: " . $e->getMessage());
+            return response()->json(['error' => 'Gagal sinkronisasi: ' . $e->getMessage()], 500);
+        }
     }
 }

@@ -14,6 +14,7 @@ import {
     Calendar,
     User,
     CheckCircle2,
+    AlertCircle,
     Truck,
     Download,
     FileText,
@@ -70,10 +71,26 @@ export default function Index({ auth, orders }) {
         }
     };
 
+    const [stuckPaymentId, setStuckPaymentId] = useState(null);
+
+    const handleSyncStuckPayment = async (paymentId) => {
+        setUpdatingId('sync');
+        try {
+            const response = await axios.post(route('admin.orders.pi-sync'), { payment_id: paymentId });
+            toast.success(response.data.success);
+            setStuckPaymentId(null);
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Failed to sync payment.');
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
     const handleRefund = async (orderId) => {
         if (!confirm('Apakah Anda yakin ingin memproses refund Pi untuk pesanan ini? Koin akan langsung dikirim kembali ke wallet user.')) return;
         
         setUpdatingId(orderId);
+        setStuckPaymentId(null);
         try {
             const response = await axios.post(route('admin.orders.refund', orderId));
             
@@ -98,7 +115,15 @@ export default function Index({ auth, orders }) {
         } catch (error) {
             console.error('Refund error:', error);
             const msg = error.response?.data?.error || 'Failed to process refund.';
-            toast.error(msg);
+            
+            // Auto detection of stuck payment ID from error message
+            const identifierMatch = msg.match(/"identifier":"([^"]+)"/);
+            if (identifierMatch && identifierMatch[1]) {
+                setStuckPaymentId(identifierMatch[1]);
+                toast.warning('Ditemukan transaksi yang tersangkut. Gunakan tombol "Pembersih Antrean" yang muncul.');
+            } else {
+                toast.error(msg);
+            }
         } finally {
             setUpdatingId(null);
         }
@@ -324,6 +349,37 @@ export default function Index({ auth, orders }) {
                     <span className="text-slate-800">Orders</span>
                 </div>
             </div>
+
+            {/* Stuck Payment Recovery Alert */}
+            {stuckPaymentId && (
+                <div className="bg-red-50 border-2 border-red-200 p-6 rounded-3xl mb-6 flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in duration-300">
+                    <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center text-red-600 flex-shrink-0 shadow-inner">
+                            <AlertCircle className="w-8 h-8" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-black text-red-900 uppercase tracking-tight">Antrean Wallet Pi Tersumbat</h3>
+                            <p className="text-sm text-red-600 font-bold leading-relaxed">Ada transaksi yang belum selesai (ID: <span className="font-mono bg-red-100 px-2 rounded">{stuckPaymentId}</span>).<br/>Sistem tidak bisa melakukan refund baru sampai transaksi ini dibereskan.</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => handleSyncStuckPayment(stuckPaymentId)}
+                        disabled={updatingId === 'sync'}
+                        className="w-full md:w-auto px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-red-600/30 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                    >
+                        {updatingId === 'sync' ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Cleaning...
+                            </>
+                        ) : (
+                            <>
+                                <CheckCircle2 className="w-4 h-4" /> Bersihkan Antrean
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
 
             {/* Enhanced Control Bar */}
             <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 mb-6 space-y-4">
