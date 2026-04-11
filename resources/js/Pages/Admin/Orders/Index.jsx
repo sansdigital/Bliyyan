@@ -77,16 +77,26 @@ export default function Index({ auth, orders }) {
         try {
             const response = await axios.post(route('admin.orders.refund', orderId));
             
+            // Update local state for both Order and Payment
             setLocalOrders(prev =>
-                prev.map(o => o.id === orderId ? { ...o, status: 'refunded' } : o)
+                prev.map(o => o.id === orderId ? { 
+                    ...o, 
+                    status: 'refunded',
+                    payment: o.payment ? { ...o.payment, status: 'refunded' } : o.payment
+                } : o)
             );
             
             if (viewDetailsModal && viewDetailsModal.id === orderId) {
-                setViewDetailsModal(prev => ({ ...prev, status: 'refunded' }));
+                setViewDetailsModal(prev => ({ 
+                    ...prev, 
+                    status: 'refunded',
+                    payment: prev.payment ? { ...prev.payment, status: 'refunded' } : prev.payment
+                }));
             }
             
             toast.success(response.data.success || 'Refund processed successfully.');
         } catch (error) {
+            console.error('Refund error:', error);
             const msg = error.response?.data?.error || 'Failed to process refund.';
             toast.error(msg);
         } finally {

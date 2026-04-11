@@ -6,8 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-
+use Illuminate\Support\Facades\DB;
 use App\Models\Order;
+use App\Models\Payment;
 use Inertia\Inertia;
 
 class AdminOrderController extends Controller
@@ -34,59 +35,70 @@ class AdminOrderController extends Controller
 
     public function refund(Order $order)
     {
-        if (!in_array($order->status, ['paid', 'processing', 'shipped', 'completed'])) {
-            return back()->with('error', 'Pesanan ini tidak dapat di-refund pada status saat ini.');
-        }
-
-        $user = $order->user;
-        if (!$user->pi_uid) {
-            return back()->with('error', 'User tidak memiliki Pi UID yang valid.');
-        }
-
-        $piUid = str_replace('@pi.network', '', $user->pi_uid);
-        $apiKey = config('services.pi.api_key');
-        $apiUrl = config('services.pi.api_url');
-
         try {
-            Log::info("Processing Refund for Order #{$order->id} to User {$user->name} (UID: {$piUid})");
+            return DB::transaction(function () use ($order) {
+                // EXPLICIT LOCK: Prevent any other process (webhooks/sync) from touching this order
+                $order = Order::where('id', $order->id)->lockForUpdate()->first();
 
-            // Step 1: Create the A2U payment for refund
-            $createResponse = Http::withoutVerifying()
-                ->withHeader('Authorization', 'Key ' . $apiKey)
-                ->post("{$apiUrl}/payments", [
-                    'payment' => [
-                        'amount'   => (float) $order->total_price,
-                        'memo'     => "Refund for Order #" . str_pad($order->id, 4, '0', STR_PAD_LEFT),
-                        'metadata' => [
-                            'type'     => 'refund',
-                            'order_id' => $order->id,
+                if ($order->status === 'refunded') {
+                    return response()->json(['error' => 'Pesanan ini sudah di-refund sebelumnya.'], 400);
+                }
+
+                if (!in_array($order->status, ['paid', 'processing', 'shipped', 'completed'])) {
+                    return response()->json(['error' => 'Status pesanan saat ini tidak mendukung refund.'], 400);
+                }
+
+                $user = $order->user;
+                if (!$user->pi_uid) {
+                    return response()->json(['error' => 'User tidak memiliki Pi UID yang valid.'], 400);
+                }
+
+                $piUid = str_replace('@pi.network', '', $user->pi_uid);
+                $apiKey = config('services.pi.api_key');
+                $apiUrl = config('services.pi.api_url');
+
+                Log::info("START REFUND: Order #{$order->id} (User: {$user->name}, UID: {$piUid})");
+
+                // 1. Create the A2U payment
+                $createResponse = Http::withoutVerifying()
+                    ->withHeader('Authorization', 'Key ' . $apiKey)
+                    ->post("{$apiUrl}/payments", [
+                        'payment' => [
+                            'amount'   => (float)$order->total_price,
+                            'memo'     => "Refund for Order #" . str_pad($order->id, 4, '0', STR_PAD_LEFT),
+                            'metadata' => [
+                                'type'     => 'refund',
+                                'order_id' => $order->id,
+                            ],
+                            'uid' => $piUid,
                         ],
-                        'uid' => $piUid,
-                    ],
-                    'payment_type' => 'A2U',
-                ]);
+                        'payment_type' => 'A2U',
+                    ]);
 
-            if ($createResponse->failed()) {
-                throw new \Exception($createResponse->body());
-            }
+                if ($createResponse->failed()) {
+                    throw new \Exception("Create Payment Failure: " . $createResponse->body());
+                }
 
-            $paymentData = $createResponse->json();
-            $paymentId = $paymentData['identifier'];
+                $paymentData = $createResponse->json();
+                $paymentId = $paymentData['identifier'];
 
-            // Step 2: Approve the payment
-            $approveResponse = Http::withoutVerifying()
-                ->withHeader('Authorization', 'Key ' . $apiKey)
-                ->post("{$apiUrl}/payments/{$paymentId}/approve");
+                // 2. Approve
+                $approveResponse = Http::withoutVerifying()
+                    ->withHeader('Authorization', 'Key ' . $apiKey)
+                    ->post("{$apiUrl}/payments/{$paymentId}/approve");
 
-            if ($approveResponse->failed()) {
-                throw new \Exception($approveResponse->body());
-            }
+                if ($approveResponse->failed()) {
+                    throw new \Exception("Approve Failure: " . $approveResponse->body());
+                }
 
-            $approveData = $approveResponse->json();
-            $txid = $approveData['transaction']['txid'] ?? null;
+                $approveData = $approveResponse->json();
+                $txid = $approveData['transaction']['txid'] ?? null;
 
-            // Step 3: Complete the payment
-            if ($txid) {
+                if (!$txid) {
+                    throw new \Exception("No TXID returned from Pi Network during approval.");
+                }
+
+                // 3. Complete
                 $completeResponse = Http::withoutVerifying()
                     ->withHeader('Authorization', 'Key ' . $apiKey)
                     ->post("{$apiUrl}/payments/{$paymentId}/complete", [
@@ -94,31 +106,26 @@ class AdminOrderController extends Controller
                     ]);
                 
                 if ($completeResponse->failed()) {
-                    throw new \Exception($completeResponse->body());
+                    throw new \Exception("Complete Failure: " . $completeResponse->body());
                 }
 
-                // Update Order Status
-                Log::info("REFUND: Attempting to update Order #{$order->id} status to 'refunded'");
+                // CRITICAL: Final Database Sync
                 $order->update(['status' => 'refunded']);
-
-                // Update associated Payment status to prevent auto-sync issues
                 if ($order->payment) {
-                    Log::info("REFUND: Attempting to update Payment for Order #{$order->id} to 'refunded'");
                     $order->payment->update(['status' => 'refunded']);
                 }
-                
-                Log::info("REFUND: Order #{$order->id} successfully updated to 'refunded' in DB");
 
-                return back()->with('success', "Refund senilai π{$order->total_price} berhasil dikirim ke user.");
-            }
+                Log::info("REFUND SUCCESS: Order #{$order->id} explicitly locked and finalized as 'refunded'");
 
-            return back()->with('error', 'Gagal mendapatkan TXID dari Pi Network.');
+                return response()->json([
+                    'success' => "Refund senilai π{$order->total_price} berhasil dikirim ke user.",
+                    'status' => 'refunded'
+                ]);
+            });
 
         } catch (\Exception $e) {
-            Log::error("Refund Error Order #{$order->id}: " . $e->getMessage());
-            $error = json_decode($e->getMessage(), true);
-            $errorMsg = $error['error_message'] ?? $e->getMessage();
-            return back()->with('error', 'Gagal memproses refund: ' . $errorMsg);
+            Log::error("Refund Critical Error Order #{$order->id}: " . $e->getMessage());
+            return response()->json(['error' => 'Gagal memproses refund: ' . $e->getMessage()], 500);
         }
     }
 }

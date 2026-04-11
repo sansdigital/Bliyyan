@@ -86,7 +86,6 @@ export default function AdminLayout({ children, user }) {
     });
 
     return (
-        <ToastProvider>
         <div className="min-h-screen bg-[#F8F9FE] flex font-sans">
 
             {/* Mobile sidebar overlay */}
@@ -273,6 +272,5 @@ export default function AdminLayout({ children, user }) {
                 </main>
             </div>
         </div>
-        </ToastProvider>
     );
 }

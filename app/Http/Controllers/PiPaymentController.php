@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class PiPaymentController extends Controller
 {
@@ -24,7 +24,6 @@ class PiPaymentController extends Controller
                 ->post(config('services.pi.api_url') . "/payments/{$id}/approve");
 
             if ($response->successful()) {
-                // Create a Payment record linking this pi_payment_id to the order
                 if ($orderId) {
                     $order = Order::find($orderId);
                     if ($order) {
@@ -51,7 +50,6 @@ class PiPaymentController extends Controller
         }
     }
 
-
     public function complete(Request $request)
     {
         $id = $request->paymentId;
@@ -65,50 +63,55 @@ class PiPaymentController extends Controller
                     'txid' => $txid
                 ]);
 
-
             if ($response->successful()) {
-                $payment = Payment::where('pi_payment_id', $id)->first();
-                if ($payment) {
-                    $payment->update([
-                        'status'       => 'completed',
-                        'raw_response' => $response->json(),
-                    ]);
+                // Wrap in transaction for safety
+                return DB::transaction(function () use ($id, $response, $request) {
+                    $payment = Payment::where('pi_payment_id', $id)->first();
+                    
+                    if ($payment) {
+                        $payment->update([
+                            'status'       => 'completed',
+                            'raw_response' => $response->json(),
+                        ]);
 
-                    $order = $payment->order;
-                    Log::info("Payment complete attempt for Order #".($order ? $order->id : 'unknown')." current status: ".($order ? $order->status : 'none'));
-                    if ($order && !in_array($order->status, ['refunded', 'cancelled'])) {
-                        Log::info("DB: Updating Order #{$order->id} to paid via complete()");
-                        $order->update(['status' => 'paid']);
+                        // LOCK the order row to prevent race conditions during Admin Refund
+                        $order = Order::where('id', $payment->order_id)->lockForUpdate()->first();
+                        
+                        Log::info("Satpam Logic: Order #".($order ? $order->id : 'unknown')." status check: ".($order ? $order->status : 'none'));
 
-                        // Reduce stock for each item in the order
-                        foreach ($order->items as $item) {
-                            $product = $item->product;
-                            if ($product) {
-                                $product->decrement('stock', $item->quantity);
+                        if ($order && !in_array($order->status, ['refunded', 'cancelled'])) {
+                            Log::info("Satpam Logic: Updating Order #{$order->id} to paid via complete()");
+                            $order->update(['status' => 'paid']);
+
+                            foreach ($order->items as $item) {
+                                $product = $item->product;
+                                if ($product) {
+                                    $product->decrement('stock', $item->quantity);
+                                }
+                            }
+                        }
+                    } else {
+                        // Fallback logic
+                        $orderId = $request->order_id;
+                        if ($orderId) {
+                            $order = Order::where('id', $orderId)->lockForUpdate()->first();
+                            if ($order && !in_array($order->status, ['refunded', 'cancelled'])) {
+                                Log::info("Satpam Logic: Fallback updating Order #{$order->id} to paid");
+                                $order->update(['status' => 'paid']);
+                                Payment::create([
+                                    'order_id'      => $order->id,
+                                    'pi_payment_id'  => $id,
+                                    'amount'        => $order->total_price,
+                                    'status'        => 'completed',
+                                    'raw_response'  => $response->json(),
+                                ]);
                             }
                         }
                     }
-                } else {
-                    // Fallback: find order by order_id and mark as paid
-                    $orderId = $request->order_id;
-                    if ($orderId) {
-                        $order = Order::find($orderId);
-                        if ($order && !in_array($order->status, ['refunded', 'cancelled'])) {
-                            Log::info("DB: Fallback updating Order #{$order->id} to paid");
-                            $order->update(['status' => 'paid']);
-                            Payment::create([
-                                'order_id'     => $order->id,
-                                'pi_payment_id' => $id,
-                                'amount'       => $order->total_price,
-                                'status'       => 'completed',
-                                'raw_response' => $response->json(),
-                            ]);
-                        }
-                    }
-                }
 
-                Log::info("Payment completed by server: " . $id);
-                return response()->json(["message" => "Completed"]);
+                    Log::info("Payment completed by server: " . $id);
+                    return response()->json(["message" => "Completed"]);
+                });
             }
             
             Log::error("Pi Complete Failed: " . $response->body());
@@ -126,7 +129,7 @@ class PiPaymentController extends Controller
         
         $payment = Payment::where('pi_payment_id', $id)->first();
         if ($payment) {
-            $payment->update(['payment_status' => 'cancelled']);
+            $payment->update(['status' => 'cancelled']);
             $payment->order->update(['status' => 'cancelled']);
         }
 
