@@ -98,12 +98,16 @@ class AdminOrderController extends Controller
                 }
 
                 // Update Order Status
+                Log::info("REFUND: Attempting to update Order #{$order->id} status to 'refunded'");
                 $order->update(['status' => 'refunded']);
 
                 // Update associated Payment status to prevent auto-sync issues
                 if ($order->payment) {
+                    Log::info("REFUND: Attempting to update Payment for Order #{$order->id} to 'refunded'");
                     $order->payment->update(['status' => 'refunded']);
                 }
+                
+                Log::info("REFUND: Order #{$order->id} successfully updated to 'refunded' in DB");
 
                 return back()->with('success', "Refund senilai π{$order->total_price} berhasil dikirim ke user.");
             }

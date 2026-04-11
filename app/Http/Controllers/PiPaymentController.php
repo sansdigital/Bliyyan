@@ -75,7 +75,9 @@ class PiPaymentController extends Controller
                     ]);
 
                     $order = $payment->order;
+                    Log::info("Payment complete attempt for Order #".($order ? $order->id : 'unknown')." current status: ".($order ? $order->status : 'none'));
                     if ($order && !in_array($order->status, ['refunded', 'cancelled'])) {
+                        Log::info("DB: Updating Order #{$order->id} to paid via complete()");
                         $order->update(['status' => 'paid']);
 
                         // Reduce stock for each item in the order
@@ -92,6 +94,7 @@ class PiPaymentController extends Controller
                     if ($orderId) {
                         $order = Order::find($orderId);
                         if ($order && !in_array($order->status, ['refunded', 'cancelled'])) {
+                            Log::info("DB: Fallback updating Order #{$order->id} to paid");
                             $order->update(['status' => 'paid']);
                             Payment::create([
                                 'order_id'     => $order->id,
