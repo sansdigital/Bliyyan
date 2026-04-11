@@ -88,6 +88,7 @@ Route::middleware('auth')->group(function () {
         
         Route::get('/orders', [\App\Http\Controllers\Admin\AdminOrderController::class, 'index'])->name('admin.orders.index');
         Route::patch('/orders/{order}/status', [\App\Http\Controllers\Admin\AdminOrderController::class, 'updateStatus'])->name('admin.orders.status');
+        Route::post('/orders/{order}/refund', [\App\Http\Controllers\Admin\AdminOrderController::class, 'refund'])->name('admin.orders.refund');
         
         Route::get('/reports', [\App\Http\Controllers\Admin\AdminReportController::class, 'index'])->name('admin.reports.index');
         Route::get('/reports/sales', [\App\Http\Controllers\Admin\AdminReportController::class, 'sales'])->name('admin.reports.sales');

@@ -29,7 +29,7 @@ const STATUS_CONFIG = {
     completed:  { label: 'Completed',  color: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
     cancelled:  { label: 'Cancelled',  color: 'bg-red-50 text-red-600 border-red-100' },
     chargeback: { label: 'Chargeback', color: 'bg-red-50 text-red-600 border-red-100' },
-    refund:     { label: 'Refund',     color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
+    refunded:   { label: 'Refunded',   color: 'bg-yellow-50 text-yellow-600 border-yellow-100' },
 };
 
 export default function Index({ auth, orders }) {
@@ -67,6 +67,30 @@ export default function Index({ auth, orders }) {
         } finally {
             setUpdatingId(null);
             setTrackingModal(null);
+        }
+    };
+
+    const handleRefund = async (orderId) => {
+        if (!confirm('Apakah Anda yakin ingin memproses refund Pi untuk pesanan ini? Koin akan langsung dikirim kembali ke wallet user.')) return;
+        
+        setUpdatingId(orderId);
+        try {
+            const response = await axios.post(route('admin.orders.refund', orderId));
+            
+            setLocalOrders(prev =>
+                prev.map(o => o.id === orderId ? { ...o, status: 'refunded' } : o)
+            );
+            
+            if (viewDetailsModal && viewDetailsModal.id === orderId) {
+                setViewDetailsModal(prev => ({ ...prev, status: 'refunded' }));
+            }
+            
+            toast.success(response.data.success || 'Refund processed successfully.');
+        } catch (error) {
+            const msg = error.response?.data?.error || 'Failed to process refund.';
+            toast.error(msg);
+        } finally {
+            setUpdatingId(null);
         }
     };
 
@@ -576,6 +600,23 @@ export default function Index({ auth, orders }) {
                                     <span>Courier: {viewDetailsModal.shipping_courier}</span>
                                     <span>Tracking No: {viewDetailsModal.tracking_number}</span>
                                 </div>
+                            </div>
+                        )}
+
+                        {/* Refund Button for PAID/PROCESSING/SHIPPED */}
+                        {['paid', 'processing', 'shipped', 'completed'].includes(viewDetailsModal.status) && (
+                            <div className="p-4 bg-yellow-50 rounded-2xl border border-yellow-100 flex items-center justify-between">
+                                <div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-yellow-800">Dangerous Area</span>
+                                    <p className="text-[9px] text-yellow-600 font-bold leading-tight mt-0.5">Kembalikan Pi user untuk pesanan ini.</p>
+                                </div>
+                                <button 
+                                    onClick={() => handleRefund(viewDetailsModal.id)}
+                                    disabled={updatingId === viewDetailsModal.id}
+                                    className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-yellow-500/20 transition-all active:scale-95 disabled:opacity-50"
+                                >
+                                    {updatingId === viewDetailsModal.id ? 'Processing...' : 'Refund Pi'}
+                                </button>
                             </div>
                         )}
 
