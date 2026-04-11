@@ -75,7 +75,7 @@ class PiPaymentController extends Controller
                     ]);
 
                     $order = $payment->order;
-                    if ($order) {
+                    if ($order && !in_array($order->status, ['refunded', 'cancelled'])) {
                         $order->update(['status' => 'paid']);
 
                         // Reduce stock for each item in the order
@@ -91,7 +91,7 @@ class PiPaymentController extends Controller
                     $orderId = $request->order_id;
                     if ($orderId) {
                         $order = Order::find($orderId);
-                        if ($order) {
+                        if ($order && !in_array($order->status, ['refunded', 'cancelled'])) {
                             $order->update(['status' => 'paid']);
                             Payment::create([
                                 'order_id'     => $order->id,
