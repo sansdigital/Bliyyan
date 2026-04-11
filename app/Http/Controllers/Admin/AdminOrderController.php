@@ -37,7 +37,7 @@ class AdminOrderController extends Controller
     {
         try {
             return DB::transaction(function () use ($order) {
-                // EXPLICIT LOCK: Prevent any other process (webhooks/sync) from touching this order
+                // LOCK the order row to prevent race conditions
                 $order = Order::where('id', $order->id)->lockForUpdate()->first();
 
                 if ($order->status === 'refunded') {
@@ -91,14 +91,29 @@ class AdminOrderController extends Controller
                     throw new \Exception("Approve Failure: " . $approveResponse->body());
                 }
 
-                $approveData = $approveResponse->json();
-                $txid = $approveData['transaction']['txid'] ?? null;
-
-                if (!$txid) {
-                    throw new \Exception("No TXID returned from Pi Network during approval.");
+                // 3. INTERNAL POLLING for TXID (Blockchain delay handling)
+                $txid = null;
+                for ($i = 0; $i < 5; $i++) {
+                    Log::info("Polling for TXID: Attempt $i for Payment $paymentId");
+                    
+                    $checkResponse = Http::withoutVerifying()
+                        ->withHeader('Authorization', 'Key ' . $apiKey)
+                        ->get("{$apiUrl}/payments/{$paymentId}");
+                    
+                    if ($checkResponse->successful()) {
+                        $checkData = $checkResponse->json();
+                        $txid = $checkData['transaction']['txid'] ?? null;
+                        if ($txid) break;
+                    }
+                    
+                    sleep(1); // Wait for blockchain
                 }
 
-                // 3. Complete
+                if (!$txid) {
+                    throw new \Exception("Transaxion ID (TXID) belum muncul di Blockchain Pi setelah Approval. ID: $paymentId. Antrean tersumbat, gunakan tombol Bersihkan Antrean.");
+                }
+
+                // 4. Complete
                 $completeResponse = Http::withoutVerifying()
                     ->withHeader('Authorization', 'Key ' . $apiKey)
                     ->post("{$apiUrl}/payments/{$paymentId}/complete", [
@@ -109,13 +124,13 @@ class AdminOrderController extends Controller
                     throw new \Exception("Complete Failure: " . $completeResponse->body());
                 }
 
-                // CRITICAL: Final Database Sync
+                // Final Database Sync
                 $order->update(['status' => 'refunded']);
                 if ($order->payment) {
                     $order->payment->update(['status' => 'refunded']);
                 }
 
-                Log::info("REFUND SUCCESS: Order #{$order->id} explicitly locked and finalized as 'refunded'");
+                Log::info("REFUND SUCCESS: Order #{$order->id} finalized as 'refunded'");
 
                 return response()->json([
                     'success' => "Refund senilai π{$order->total_price} berhasil dikirim ke user.",
@@ -140,25 +155,34 @@ class AdminOrderController extends Controller
         $apiUrl = config('services.pi.api_url');
 
         try {
-            Log::info("MANUAL SYNC: Attempting to clear stuck payment $paymentId");
+            Log::info("MANUAL SYNC START: Payment ID $paymentId");
 
-            // 1. Get payment info to see status
+            // 1. Get payment info
             $getResponse = Http::withoutVerifying()
                 ->withHeader('Authorization', 'Key ' . $apiKey)
                 ->get("{$apiUrl}/payments/{$paymentId}");
 
             if ($getResponse->failed()) {
-                throw new \Exception("Fetch Stuck Payment Failed: " . $getResponse->body());
+                throw new \Exception("Gagal mengambil data dari Pi Server: " . $getResponse->body());
             }
 
             $paymentData = $getResponse->json();
 
-            // 2. If already approved but not completed, try to complete
-            if (isset($paymentData['status']['developer_approved']) && $paymentData['status']['developer_approved'] === true) {
-                
-                // For A2U, if we don't have TXID, approval usually initiated it
-                $txid = $paymentData['transaction']['txid'] ?? 'RECOVERY-' . time();
+            // Check if transaction exists on blockchain
+            $txid = $paymentData['transaction']['txid'] ?? null;
+            $isApproved = $paymentData['status']['developer_approved'] ?? false;
+            $isCompleted = $paymentData['status']['developer_completed'] ?? false;
 
+            if ($isCompleted) {
+                return response()->json(['success' => "Transaksi ini sebenarnya sudah Selesai (Completed) di server Pi. Status diperbarui."]);
+            }
+
+            if ($isApproved) {
+                if (!$txid) {
+                    return response()->json(['error' => 'Blockchain Pi masih memproses transaksi ini (TXID Kosong). Mohon tunggu 1-2 menit lalu klik lagi.'], 422);
+                }
+
+                // Try to Complete
                 $completeResponse = Http::withoutVerifying()
                     ->withHeader('Authorization', 'Key ' . $apiKey)
                     ->post("{$apiUrl}/payments/{$paymentId}/complete", [
@@ -166,20 +190,22 @@ class AdminOrderController extends Controller
                     ]);
 
                 if ($completeResponse->successful()) {
-                    return response()->json(['success' => "Payment $paymentId successfully SYNCED and cleared."]);
+                    return response()->json(['success' => "Antrean dibersihkan! Transaksi $paymentId berhasil diselesaikan (Completed)."]);
+                } else {
+                    return response()->json(['error' => 'Gagal menyelesaikan: ' . $completeResponse->body()], 400);
                 }
             }
 
-            // 3. Fallback: If not approved, try to cancel it
+            // If not even approved, try to Cancel
             $cancelResponse = Http::withoutVerifying()
                 ->withHeader('Authorization', 'Key ' . $apiKey)
                 ->post("{$apiUrl}/payments/{$paymentId}/cancel");
 
-            return response()->json(['success' => "Stuck payment $paymentId handled. Please try your refund again."]);
+            return response()->json(['success' => "Transaksi menggantung berhasil dibatalkan (Cancelled). Anda bisa mencoba refund kembali sekarang."]);
 
         } catch (\Exception $e) {
             Log::error("Manual Sync Error: " . $e->getMessage());
-            return response()->json(['error' => 'Gagal sinkronisasi: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Pembersihan Gagal: ' . $e->getMessage()], 500);
         }
     }
 }
