@@ -80,7 +80,7 @@ if (isset($_POST['submit_reward'])) {
                 $status = "error";
                 
                 // Fallback debug info
-                Log::info("Payout Debug: UID: $uid, Response: $response");
+                // error_log("Payout Debug: UID: $uid, Response: $response");
             }
         } catch (Exception $e) {
             $message = "Exception: " . $e->getMessage();
