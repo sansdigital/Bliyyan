@@ -45,8 +45,9 @@ class AdminRewardController extends Controller
         ]);
 
         $user = User::findOrFail($request->user_id);
+        $piUid = str_replace('@pi.network', '', $user->pi_uid);
 
-        if (!$user->pi_uid) {
+        if (!$piUid) {
             return back()->with('error', 'User belum memiliki Pi UID (belum login via Pi Browser).');
         }
 
@@ -54,7 +55,7 @@ class AdminRewardController extends Controller
         $apiUrl = config('services.pi.api_url');
 
         try {
-            Log::info("A2U Reward: Sending {$request->amount} Pi to user {$user->name} (UID: {$user->pi_uid})");
+            Log::info("A2U Reward: Sending {$request->amount} Pi to user {$user->name} (UID: {$piUid})");
 
             // Step 1: Create the A2U payment
             $createResponse = Http::withoutVerifying()
@@ -67,7 +68,7 @@ class AdminRewardController extends Controller
                             'type'    => 'reward',
                             'user_id' => $user->id,
                         ],
-                        'uid' => $user->pi_uid,
+                        'uid' => $piUid,
                     ],
                     'payment_type' => 'A2U',
                 ]);
@@ -143,11 +144,12 @@ class AdminRewardController extends Controller
             'memo'   => 'required|string|max:255',
         ]);
 
+        $piUid = str_replace('@pi.network', '', $request->pi_uid);
         $apiKey = config('services.pi.api_key');
         $apiUrl = config('services.pi.api_url');
 
         try {
-            Log::info("A2U Direct: Sending {$request->amount} Pi to UID: {$request->pi_uid}");
+            Log::info("A2U Direct: Sending {$request->amount} Pi to UID: {$piUid}");
 
             $createResponse = Http::withoutVerifying()
                 ->withHeader('Authorization', 'Key ' . $apiKey)
@@ -156,7 +158,7 @@ class AdminRewardController extends Controller
                         'amount'   => (float) $request->amount,
                         'memo'     => $request->memo,
                         'metadata' => ['type' => 'reward'],
-                        'uid'      => $request->pi_uid,
+                        'uid'      => $piUid,
                     ],
                     'payment_type' => 'A2U',
                 ]);
