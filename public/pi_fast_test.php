@@ -29,6 +29,19 @@ if (isset($_GET['action'])) {
     header('Content-Type: application/json');
     $action = $_GET['action'];
 
+    if ($action == 'approve_u2a') {
+        // Berikan persetujuan (Approve) ke Pi Network agar user bisa bayar
+        $paymentId = $_POST['paymentId'];
+        $ch = curl_init("$apiUrl/payments/$paymentId/approve");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Authorization: Key $apiKey"]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $res = curl_exec($ch);
+        echo $res;
+        exit;
+    }
+
     if ($action == 'complete_u2a') {
         // Laporkan transaksi U2A (User bayar ke App) telah selesai
         $paymentId = $_POST['paymentId'];
@@ -157,7 +170,17 @@ if (isset($_GET['action'])) {
                     memo: "Test Transaction",
                     metadata: { type: "test" }
                 }, {
-                    onReadyForServerApproval: (id) => log("Menunggu persetujuan server untuk: " + id),
+                    onReadyForServerApproval: (id) => {
+                        log("Menyetujui pembayaran: " + id);
+                        const fd = new FormData();
+                        fd.append('paymentId', id);
+                        fetch('?action=approve_u2a', { method: 'POST', body: fd })
+                        .then(r => r.json())
+                        .then(data => {
+                            if(data.identifier) log("Persetujuan Server Terkirim ✅");
+                            else log("Gagal Approve: " + JSON.stringify(data));
+                        });
+                    },
                     onReadyForServerCompletion: (id, txid) => {
                         log("Pembayaran sukses di blockchain! Menyelesaikan...");
                         const fd = new FormData();
