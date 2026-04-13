@@ -136,15 +136,17 @@ class AdminOrderController extends Controller
                 $amountStr = number_format((float)$order->total_price, 7, '.', ''); // Stellar precision
                 
                 // Command: build <seed> <destination> <amount> <memoText> <horizonUrl>
-                $command = "node $nodeScript build \"$walletSeed\" \"$destAddress\" \"$amountStr\" \"$paymentId\" \"$horizonUrl\"";
+                // Added 2>&1 to capture shell errors
+                $command = "node " . escapeshellarg($nodeScript) . " build " . escapeshellarg($walletSeed) . " " . escapeshellarg($destAddress) . " " . escapeshellarg($amountStr) . " " . escapeshellarg($paymentId) . " " . escapeshellarg($horizonUrl) . " 2>&1";
                 $output = shell_exec($command);
+                
+                Log::info("REFUND Blockchain Result: " . $output);
+                
                 $result = json_decode($output, true);
 
-                Log::info("REFUND Blockchain Result: " . $output);
-
                 if (!isset($result['success']) || !$result['success']) {
-                    $errorMsg = is_array($result['error'] ?? null) ? json_encode($result['error']) : ($result['error'] ?? 'Unknown blockchain error');
-                    throw new \Exception("Blockchain Failure: " . $errorMsg);
+                    $rawOutput = trim($output);
+                    throw new \Exception("Node Script Execution Failed: " . ($rawOutput ? $rawOutput : 'Empty Output'));
                 }
 
                 $txid = $result['txid'];
