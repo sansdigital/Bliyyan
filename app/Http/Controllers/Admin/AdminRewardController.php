@@ -103,17 +103,36 @@ class AdminRewardController extends Controller
 
             Log::info("A2U Approve Response: " . $approveResponse->body());
 
-            if (!$approveResponse->successful()) {
+            $approvedData = $approveResponse->json();
+            
+            // Handle "already_approved" gracefully
+            if (!$approveResponse->successful() && ($approvedData['error'] ?? '') === 'already_approved') {
+                Log::info("A2U: Payment $paymentId was already approved. Fetching current state...");
+                $approvedData = $approvedData['payment'] ?? null;
+            } elseif (!$approveResponse->successful()) {
                 Log::error("A2U Approve Failed: " . $approveResponse->body());
-                return back()->with('error', 'Gagal approve pembayaran: ' . ($approveResponse->json()['error_type'] ?? $approveResponse->body()));
+                return back()->with('error', 'Gagal approve pembayaran: ' . ($approvedData['error_type'] ?? $approveResponse->body()))
+                             ->with('stuck_payment_id', $paymentId);
             }
 
-            $approvedData = $approveResponse->json();
+            // If transaction is null, try to fetch it one more time via GET
+            if (!isset($approvedData['transaction']) || !$approvedData['transaction']) {
+                Log::info("A2U: Transaction null after approve. Retrying with GET...");
+                $getResponse = Http::withoutVerifying()
+                    ->withHeader('Authorization', 'Key ' . $apiKey)
+                    ->get("{$apiUrl}/payments/{$paymentId}");
+                
+                if ($getResponse->successful()) {
+                    $approvedData = $getResponse->json();
+                }
+            }
+
             $xdr = $approvedData['transaction']['tx_payload'] ?? null;
 
             if (!$xdr) {
-                Log::error("A2U Error: TX Payload (XDR) not found in approve response.");
-                return back()->with('error', 'Gagal mendapatkan payload transaksi (XDR).');
+                Log::error("A2U Error: TX Payload (XDR) tetap tidak ditemukan.");
+                return back()->with('error', 'Pi Server tidak memberikan payload transaksi (XDR). Pastikan dompet aplikasi sudah benar-benar memiliki saldo dan terhubung di Developer Portal.')
+                             ->with('stuck_payment_id', $paymentId);
             }
 
             // Step 3: Sign and Submit to Blockchain via Node.js Bridge
@@ -224,19 +243,34 @@ class AdminRewardController extends Controller
                 ->post("{$apiUrl}/payments/{$paymentId}/approve");
 
             Log::info("A2U Direct Approve: " . $approveResponse->body());
+            $approvedData = $approveResponse->json();
 
-            if (!$approveResponse->successful()) {
+            if (!$approveResponse->successful() && ($approvedData['error'] ?? '') === 'already_approved') {
+                $approvedData = $approvedData['payment'] ?? null;
+            } elseif (!$approveResponse->successful()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal approve: ' . ($approveResponse->json()['error_type'] ?? $approveResponse->body())
+                    'message' => 'Gagal approve: ' . ($approvedData['error_type'] ?? $approveResponse->body()),
+                    'stuck_payment_id' => $paymentId
                 ], 400);
             }
 
-            $approvedData = $approveResponse->json();
+            // Retry with GET if transaction null
+            if (!isset($approvedData['transaction']) || !$approvedData['transaction']) {
+                $getResponse = Http::withoutVerifying()
+                    ->withHeader('Authorization', 'Key ' . $apiKey)
+                    ->get("{$apiUrl}/payments/{$paymentId}");
+                if ($getResponse->successful()) $approvedData = $getResponse->json();
+            }
+
             $xdr = $approvedData['transaction']['tx_payload'] ?? null;
 
             if (!$xdr) {
-                return response()->json(['success' => false, 'message' => 'Payload transaksi tidak ditemukan.'], 400);
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'Pi Server tidak mengirimkan XDR. Cek saldo dompet aplikasi Anda.',
+                    'stuck_payment_id' => $paymentId
+                ], 400);
             }
 
             // Step 3: Sign & Submit via Node Bridge
