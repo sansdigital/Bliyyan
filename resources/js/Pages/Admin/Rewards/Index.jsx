@@ -512,8 +512,9 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
                         </p>
                     )}
                 </div>
+            </div>
 
-                {/* Instructions */}
+            {/* Instructions */}
                 <div className="bg-slate-900 rounded-2xl p-6 text-white">
                     <h3 className="text-xs font-black uppercase tracking-widest text-yellow-400 mb-4 flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4" />
