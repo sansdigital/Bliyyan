@@ -101,6 +101,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/rewards', [\App\Http\Controllers\Admin\AdminRewardController::class, 'index'])->name('admin.rewards.index');
         Route::post('/rewards/send', [\App\Http\Controllers\Admin\AdminRewardController::class, 'send'])->name('admin.rewards.send');
         Route::post('/rewards/send-by-uid', [\App\Http\Controllers\Admin\AdminRewardController::class, 'sendByUid'])->name('admin.rewards.send-by-uid');
+        Route::get('/rewards/check-incomplete', [\App\Http\Controllers\Admin\AdminRewardController::class, 'checkIncompletePayments'])->name('admin.rewards.check-incomplete');
+        Route::post('/rewards/cancel-stuck', [\App\Http\Controllers\Admin\AdminRewardController::class, 'cancelStuckPayment'])->name('admin.rewards.cancel-stuck');
     });
 });
 
