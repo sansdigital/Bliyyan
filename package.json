@@ -27,6 +27,7 @@
         "lucide-react": "^1.7.0",
         "react-i18next": "^17.0.2",
         "recharts": "^3.8.1",
+        "stellar-sdk": "^13.3.0",
         "xlsx": "^0.18.5"
     }
 }

@@ -38,6 +38,7 @@ return [
     'pi' => [
         'api_url' => env('PI_API_URL', 'https://api.minepi.com/v2'),
         'api_key' => env('PI_API_KEY'),
+        'wallet_seed' => env('PI_WALLET_SEED'),
         'sandbox' => env('PI_SANDBOX', true),
     ],
 

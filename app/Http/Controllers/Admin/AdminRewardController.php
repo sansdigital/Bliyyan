@@ -87,7 +87,7 @@ class AdminRewardController extends Controller
                 return back()->with('error', 'Payment ID tidak ditemukan dari response Pi API.');
             }
 
-            // Step 2: Approve the payment
+            // Step 2: Approve the payment (This gets the transaction payload)
             $approveResponse = Http::withoutVerifying()
                 ->withHeader('Authorization', 'Key ' . $apiKey)
                 ->post("{$apiUrl}/payments/{$paymentId}/approve");
@@ -99,19 +99,42 @@ class AdminRewardController extends Controller
                 return back()->with('error', 'Gagal approve pembayaran: ' . ($approveResponse->json()['error_type'] ?? $approveResponse->body()));
             }
 
-            // Step 3: Complete the payment (using txid from blockchain)
             $approvedData = $approveResponse->json();
-            $txid = $approvedData['transaction']['txid'] ?? null;
+            $xdr = $approvedData['transaction']['tx_payload'] ?? null;
 
-            if ($txid) {
-                $completeResponse = Http::withoutVerifying()
-                    ->withHeader('Authorization', 'Key ' . $apiKey)
-                    ->post("{$apiUrl}/payments/{$paymentId}/complete", [
-                        'txid' => $txid,
-                    ]);
-
-                Log::info("A2U Complete Response: " . $completeResponse->body());
+            if (!$xdr) {
+                Log::error("A2U Error: TX Payload (XDR) not found in approve response.");
+                return back()->with('error', 'Gagal mendapatkan payload transaksi (XDR).');
             }
+
+            // Step 3: Sign and Submit to Blockchain via Node.js Bridge
+            $seed = config('services.pi.wallet_seed');
+            if (!$seed) {
+                return back()->with('error', 'PI_WALLET_SEED belum dikonfigurasi di file .env');
+            }
+
+            $nodeScript = base_path('sign_pi.js');
+            $command = "node \"{$nodeScript}\" \"{$seed}\" \"{$xdr}\" 2>&1";
+            $output = shell_exec($command);
+            $result = json_decode($output, true);
+
+            Log::info("A2U Blockchain Result: " . $output);
+
+            if (!isset($result['success']) || !$result['success']) {
+                $errMsg = $result['error'] ?? 'Gagal melakukan signing transaksi blockchain.';
+                return back()->with('error', 'Blockchain Error: ' . (is_array($errMsg) ? json_encode($errMsg) : $errMsg));
+            }
+
+            $txid = $result['txid'];
+
+            // Step 4: Complete the payment on Pi Server
+            $completeResponse = Http::withoutVerifying()
+                ->withHeader('Authorization', 'Key ' . $apiKey)
+                ->post("{$apiUrl}/payments/{$paymentId}/complete", [
+                    'txid' => $txid,
+                ]);
+
+            Log::info("A2U Complete Response: " . $completeResponse->body());
 
             // Save reward record
             \App\Models\PiReward::create([
@@ -176,22 +199,48 @@ class AdminRewardController extends Controller
             $payment = $createResponse->json();
             $paymentId = $payment['identifier'] ?? null;
 
-            // Approve
+            // Step 2: Approve
             $approveResponse = Http::withoutVerifying()
                 ->withHeader('Authorization', 'Key ' . $apiKey)
                 ->post("{$apiUrl}/payments/{$paymentId}/approve");
 
             Log::info("A2U Direct Approve: " . $approveResponse->body());
 
-            $approvedData = $approveResponse->json();
-            $txid = $approvedData['transaction']['txid'] ?? null;
-
-            // Complete if txid available
-            if ($txid) {
-                Http::withoutVerifying()
-                    ->withHeader('Authorization', 'Key ' . $apiKey)
-                    ->post("{$apiUrl}/payments/{$paymentId}/complete", ['txid' => $txid]);
+            if (!$approveResponse->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal approve: ' . ($approveResponse->json()['error_type'] ?? $approveResponse->body())
+                ], 400);
             }
+
+            $approvedData = $approveResponse->json();
+            $xdr = $approvedData['transaction']['tx_payload'] ?? null;
+
+            if (!$xdr) {
+                return response()->json(['success' => false, 'message' => 'Payload transaksi tidak ditemukan.'], 400);
+            }
+
+            // Step 3: Sign & Submit via Node Bridge
+            $seed = config('services.pi.wallet_seed');
+            if (!$seed) {
+                return response()->json(['success' => false, 'message' => 'PI_WALLET_SEED belum dikonfigurasi.'], 400);
+            }
+
+            $nodeScript = base_path('sign_pi.js');
+            $command = "node \"{$nodeScript}\" \"{$seed}\" \"{$xdr}\" 2>&1";
+            $output = shell_exec($command);
+            $result = json_decode($output, true);
+
+            if (!isset($result['success']) || !$result['success']) {
+                return response()->json(['success' => false, 'message' => 'Blockchain Error: ' . ($result['error'] ?? 'Unknown error')], 400);
+            }
+
+            $txid = $result['txid'];
+
+            // Step 4: Complete
+            Http::withoutVerifying()
+                ->withHeader('Authorization', 'Key ' . $apiKey)
+                ->post("{$apiUrl}/payments/{$paymentId}/complete", ['txid' => $txid]);
 
             // Try to find if user exists in our DB
             $user = User::where('pi_uid', $request->pi_uid)->first();
