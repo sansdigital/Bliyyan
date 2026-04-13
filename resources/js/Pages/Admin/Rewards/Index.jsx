@@ -30,7 +30,7 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
     const [diagLoading, setDiagLoading] = useState(false);
     const [incompletePayments, setIncompletePayments] = useState([]);
     const [cancellingId, setCancellingId] = useState(null);
-    const [appWallet, setAppWallet] = useState({ address: '', balance: '...' });
+    const [appWallet, setAppWallet] = useState({ address: '', balance: '...', node: '' });
 
     const { data, setData, post, processing, errors, reset } = useForm({
         user_id: '',
@@ -75,7 +75,7 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
             const res = await axios.get(route('admin.rewards.check-incomplete'));
             setIncompletePayments(res.data.data?.payments || []);
             if (res.data.balance) {
-                setAppWallet({ address: res.data.address, balance: res.data.balance });
+                setAppWallet({ address: res.data.address, balance: res.data.balance, node: res.data.node });
             }
         } catch (err) {
             alert('Gagal mengecek data: ' + (err.response?.data?.message || err.message));
@@ -459,10 +459,15 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
                             </div>
                         </div>
                         
-                        <div className="mt-6 pt-6 border-t border-gray-50">
+                        <div className="mt-6 pt-6 border-t border-gray-50 flex items-center justify-between">
                             <p className="text-[9px] text-gray-400 font-bold leading-relaxed italic">
-                                *Data saldo ditarik langsung dari jaringan blockchain Pi Horizon.
+                                *Data saldo ditarik via blockchain.
                             </p>
+                            {appWallet.node && (
+                                <span className="text-[8px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full font-mono">
+                                    Node: {appWallet.node.replace('https://', '')}
+                                </span>
+                            )}
                         </div>
                     </div>
 

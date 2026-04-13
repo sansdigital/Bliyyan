@@ -140,13 +140,16 @@ class AdminRewardController extends Controller
             }
 
             // Step 3: Sign and Submit to Blockchain via Node.js Bridge
-            $seed = config('services.pi.wallet_seed');
-            if (!$seed) {
+            $walletSeed = config('services.pi.wallet_seed');
+            if (!$walletSeed) {
                 return back()->with('error', 'PI_WALLET_SEED belum dikonfigurasi di file .env');
             }
 
+            $workingNode = $this->getBestHorizonUrl();
+            Log::info("A2U: Using node $workingNode for signing.");
+
             $nodeScript = base_path('sign_pi.js');
-            $command = "node \"{$nodeScript}\" \"{$seed}\" \"{$xdr}\" 2>&1";
+            $command = "node $nodeScript \"$walletSeed\" \"$xdr\" \"$workingNode\"";
             $output = shell_exec($command);
             $result = json_decode($output, true);
 
@@ -281,13 +284,14 @@ class AdminRewardController extends Controller
             }
 
             // Step 3: Sign & Submit via Node Bridge
-            $seed = config('services.pi.wallet_seed');
-            if (!$seed) {
+            $walletSeed = config('services.pi.wallet_seed');
+            if (!$walletSeed) {
                 return response()->json(['success' => false, 'message' => 'PI_WALLET_SEED belum dikonfigurasi.'], 400);
             }
 
+            $workingNode = $this->getBestHorizonUrl();
             $nodeScript = base_path('sign_pi.js');
-            $command = "node \"{$nodeScript}\" \"{$seed}\" \"{$xdr}\" 2>&1";
+            $command = "node $nodeScript \"$walletSeed\" \"$xdr\" \"$workingNode\"";
             $output = shell_exec($command);
             $result = json_decode($output, true);
 
@@ -368,11 +372,13 @@ class AdminRewardController extends Controller
                 ->withHeader('Authorization', 'Key ' . $apiKey)
                 ->get("{$apiUrl}/payments/incomplete_server_payments");
 
-            // 2. Fetch Wallet Balance from Pi Horizon (Testnet)
+            // 2. Fetch Wallet Balance from BEST working Horizon node
             $balance = "N/A";
+            $workingNode = $this->getBestHorizonUrl();
+            
             try {
-                $horizonUrl = "https://horizon-testnet.pi2.network/accounts/{$walletAddress}";
-                $horizonRes = Http::withoutVerifying()->get($horizonUrl);
+                $horizonUrl = "{$workingNode}/accounts/{$walletAddress}";
+                $horizonRes = Http::withoutVerifying()->timeout(5)->get($horizonUrl);
                 if ($horizonRes->successful()) {
                     $balances = $horizonRes->json()['balances'] ?? [];
                     foreach ($balances as $b) {
@@ -383,17 +389,43 @@ class AdminRewardController extends Controller
                     }
                 }
             } catch (\Exception $e) {
-                Log::warning("Horizon balance fetch failed: " . $e->getMessage());
+                Log::warning("Horizon balance fetch failed on $workingNode: " . $e->getMessage());
             }
 
             return response()->json([
                 'success' => true,
                 'data'    => $paymentsResponse->json(),
                 'balance' => $balance,
-                'address' => $walletAddress
+                'address' => $walletAddress,
+                'node'    => $workingNode
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Find the most responsive Horizon node.
+     */
+    private function getBestHorizonUrl()
+    {
+        $nodes = [
+            'https://horizon-testnet.pi2.network',
+            'https://api.testnet.minepi.com/horizon',
+            'https://testnet-horizon.pi.network',
+        ];
+
+        foreach ($nodes as $node) {
+            try {
+                $response = Http::withoutVerifying()->timeout(2)->get($node);
+                if ($response->successful() || $response->status() === 404) { // 404 is still a valid response from a live node
+                    return $node;
+                }
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        return $nodes[0]; // Fallback to primary
     }
 }

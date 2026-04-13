@@ -1,13 +1,14 @@
 const StellarSdk = require('stellar-sdk');
 
-// Configuration
-const HORIZON_URL = 'https://horizon-testnet.pi2.network'; // Pi Testnet Horizon
-const NETWORK_PASSPHRASE = 'Pi Network Testnet'; // Passphrase for Pi Testnet
+// Configuration Defaults
+const DEFAULT_HORIZON_URL = 'https://horizon-testnet.pi2.network';
+const NETWORK_PASSPHRASE = 'Pi Network Testnet';
 
-async function signAndSubmit(seed, transactionXdr) {
+async function signAndSubmit(seed, transactionXdr, customHorizonUrl) {
     try {
+        const url = customHorizonUrl || DEFAULT_HORIZON_URL;
         StellarSdk.Network.use(new StellarSdk.Network(NETWORK_PASSPHRASE));
-        const server = new StellarSdk.Server(HORIZON_URL);
+        const server = new StellarSdk.Server(url);
         const sourceKeys = StellarSdk.Keypair.fromSecret(seed);
 
         // Load the transaction from XDR
@@ -21,7 +22,8 @@ async function signAndSubmit(seed, transactionXdr) {
         
         console.log(JSON.stringify({
             success: true,
-            txid: response.hash
+            txid: response.hash,
+            node: url
         }));
     } catch (error) {
         console.error(JSON.stringify({
@@ -35,11 +37,12 @@ async function signAndSubmit(seed, transactionXdr) {
 // Get arguments from command line
 const args = process.argv.slice(2);
 if (args.length < 2) {
-    console.error(JSON.stringify({ success: false, error: "Missing arguments: node sign_pi.js <seed> <xdr>" }));
+    console.error(JSON.stringify({ success: false, error: "Missing arguments: node sign_pi.js <seed> <xdr> [horizon_url]" }));
     process.exit(1);
 }
 
 const seed = args[0];
 const transactionXdr = args[1];
+const horizonUrl = args[2] || null;
 
-signAndSubmit(seed, transactionXdr);
+signAndSubmit(seed, transactionXdr, horizonUrl);
