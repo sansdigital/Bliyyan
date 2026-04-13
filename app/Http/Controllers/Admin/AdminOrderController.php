@@ -33,11 +33,42 @@ class AdminOrderController extends Controller
         return redirect()->back()->with('success', 'Status dan informasi pelacakan pesanan diperbarui.');
     }
 
-    public function refund(Order $order)
+    public function refund(Request $request, Order $order)
     {
         try {
-            return DB::transaction(function () use ($order) {
-                // LOCK the order row
+            return DB::transaction(function () use ($request, $order) {
+                // PHASE 2: Complete the Refund after Frontend Signing
+                if ($request->has('txid') && $request->has('payment_id')) {
+                    $paymentId = $request->payment_id;
+                    $txid = $request->txid;
+                    $apiKey = config('services.pi.api_key');
+                    $apiUrl = config('services.pi.api_url');
+
+                    $completeResponse = Http::withoutVerifying()
+                        ->withHeader('Authorization', 'Key ' . $apiKey)
+                        ->post("{$apiUrl}/payments/{$paymentId}/complete", [
+                            'txid' => $txid
+                        ]);
+                    
+                    if (!$completeResponse->successful()) {
+                        Log::error("REFUND COMPLETE FAILED: " . $completeResponse->body());
+                    }
+
+                    // Final Update Local DB
+                    $order = Order::where('id', $order->id)->lockForUpdate()->first();
+                    $order->update(['status' => 'refunded']);
+                    if ($order->payment) {
+                        $order->payment->update(['status' => 'refunded']);
+                    }
+
+                    return response()->json([
+                        'success' => "Refund senilai π{$order->total_price} BERHASIL dikonfirmasi di Blockchain!",
+                        'status' => 'refunded',
+                        'txid'   => $txid
+                    ]);
+                }
+
+                // PHASE 1: Prepare the Refund Payload for the Frontend
                 $order = Order::where('id', $order->id)->lockForUpdate()->first();
 
                 if ($order->status === 'refunded') {
@@ -130,46 +161,16 @@ class AdminOrderController extends Controller
                     try { if(Http::withoutVerifying()->get($n)->successful()) { $horizonUrl = $n; break; } } catch(\Exception $e){}
                 }
 
-                Log::info("REFUND ACTION: Constructing manual transaction to $destAddress via $horizonUrl");
-                
-                $nodeScript = base_path('sign_pi.js');
                 $amountStr = number_format((float)$order->total_price, 7, '.', ''); // Stellar precision
                 
-                // Command: build <seed> <destination> <amount> <memoText> <horizonUrl>
-                // Added 2>&1 to capture shell errors
-                $command = "node " . escapeshellarg($nodeScript) . " build " . escapeshellarg($walletSeed) . " " . escapeshellarg($destAddress) . " " . escapeshellarg($amountStr) . " " . escapeshellarg($paymentId) . " " . escapeshellarg($horizonUrl) . " 2>&1";
-                $output = shell_exec($command);
-                
-                Log::info("REFUND Blockchain Result: " . $output);
-                
-                $result = json_decode($output, true);
-
-                if (!isset($result['success']) || !$result['success']) {
-                    $rawOutput = trim($output);
-                    throw new \Exception("Node Script Execution Failed: " . ($rawOutput ? $rawOutput : 'Empty Output'));
-                }
-
-                $txid = $result['txid'];
-
-                // Step 4: Complete the payment record on Pi API
-                $completeResponse = Http::withoutVerifying()
-                    ->withHeader('Authorization', 'Key ' . $apiKey)
-                    ->post("{$apiUrl}/payments/{$paymentId}/complete", [
-                        'txid' => $txid
-                    ]);
-                
-                Log::info("REFUND Complete Status: " . $completeResponse->status());
-
-                // Final Update Local DB
-                $order->update(['status' => 'refunded']);
-                if ($order->payment) {
-                    $order->payment->update(['status' => 'refunded']);
-                }
-
+                // Handoff to frontend!
                 return response()->json([
-                    'success' => "Refund senilai π{$order->total_price} BERHASIL dikirim langsung via Blockchain ke Wallet User.",
-                    'status' => 'refunded',
-                    'txid'   => $txid
+                    'requires_frontend_signing' => true,
+                    'payment_id'   => $paymentId,
+                    'dest_address' => $destAddress,
+                    'amount'       => $amountStr,
+                    'wallet_seed'  => $walletSeed,
+                    'horizon_url'  => $horizonUrl
                 ]);
             });
 

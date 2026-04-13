@@ -111,7 +111,83 @@ export default function Index({ auth, orders }) {
         try {
             const response = await axios.post(route('admin.orders.refund', orderId));
             
-            // Update local state for both Order and Payment
+            // PHASE 1: FE SIGNING REQUIRED
+            if (response.data.requires_frontend_signing) {
+                toast.info("1/3 Menyiapkan modul Blockchain lokal...", { autoClose: false, toastId: 'signing' });
+                
+                // Load stellar-sdk dynamically if it doesn't exist
+                if (!window.StellarSdk) {
+                    await new Promise((resolve, reject) => {
+                        const script = document.createElement('script');
+                        script.src = "https://cdnjs.cloudflare.com/ajax/libs/stellar-sdk/10.4.1/stellar-sdk.min.js";
+                        script.onload = resolve;
+                        script.onerror = () => reject(new Error("Gagal meload modul Stellar SDK"));
+                        document.head.appendChild(script);
+                    });
+                }
+                
+                const StellarSdk = window.StellarSdk;
+                const { wallet_seed, dest_address, amount, payment_id, horizon_url } = response.data;
+                
+                try {
+                    toast.update('signing', { render: "2/3 Membangun transaksi dan mengirim ke Jaringan Pi...", type: "info", isLoading: true });
+                    
+                    const server = new StellarSdk.Server(horizon_url, { allowHttp: true });
+                    const keypair = StellarSdk.Keypair.fromSecret(wallet_seed);
+                    const sourceAccount = await server.loadAccount(keypair.publicKey());
+                    
+                    const transaction = new StellarSdk.TransactionBuilder(sourceAccount, {
+                        fee: '1000', // Standard fee usually 100 on Stellar, 1000 on Pi to be safe 
+                        networkPassphrase: 'Pi Testnet',
+                    })
+                    .addOperation(StellarSdk.Operation.payment({
+                        destination: dest_address,
+                        asset: StellarSdk.Asset.native(),
+                        amount: amount
+                    }))
+                    .addMemo(StellarSdk.Memo.text(payment_id))
+                    .setTimeout(60)
+                    .build();
+    
+                    transaction.sign(keypair);
+                    const result = await server.submitTransaction(transaction);
+                    
+                    // PHASE 2: Hit backend again to complete
+                    toast.update('signing', { render: "3/3 Sinkronisasi dengan server Pi Network...", type: "info" });
+                    
+                    const completeRes = await axios.post(route('admin.orders.refund', orderId), {
+                        txid: result.hash,
+                        payment_id: payment_id
+                    });
+                    
+                    toast.dismiss('signing');
+                    toast.success(completeRes.data.success);
+                    
+                    // Update state success!
+                    setLocalOrders(prev =>
+                        prev.map(o => o.id === orderId ? { 
+                            ...o, 
+                            status: 'refunded',
+                            payment: o.payment ? { ...o.payment, status: 'refunded' } : o.payment
+                        } : o)
+                    );
+                    if (viewDetailsModal && viewDetailsModal.id === orderId) {
+                        setViewDetailsModal(prev => ({ 
+                            ...prev, status: 'refunded',
+                            payment: prev.payment ? { ...prev.payment, status: 'refunded' } : prev.payment
+                        }));
+                    }
+                } catch (blockchainErr) {
+                    toast.dismiss('signing');
+                    console.error("Blockchain Error:", blockchainErr);
+                    const specificDetail = blockchainErr.response?.data?.extras?.result_codes?.transaction || blockchainErr.message;
+                    throw new Error("Gagal di level Node Blockchain: " + specificDetail);
+                }
+                setUpdatingId(null);
+                return;
+            }
+
+            // Normal success (just in case)
             setLocalOrders(prev =>
                 prev.map(o => o.id === orderId ? { 
                     ...o, 
@@ -131,18 +207,19 @@ export default function Index({ auth, orders }) {
             toast.success(response.data.success || 'Refund processed successfully.');
         } catch (error) {
             console.error('Refund error:', error);
-            const msg = error.response?.data?.error || 'Failed to process refund.';
+            const msg = error.message.includes('Node Blockchain') ? error.message : (error.response?.data?.error || 'Failed to process refund.');
             
             // Auto detection of stuck payment ID from error message
             const identifierMatch = msg.match(/"identifier":"([^"]+)"/);
             if (identifierMatch && identifierMatch[1]) {
                 setStuckPaymentId(identifierMatch[1]);
-                toast.warning('Ditemukan transaksi yang tersangkut. Gunakan tombol "Pembersih Antrean" yang muncul.');
+                toast.warning('Ditemukan transaksi yang tersangkut. Gunakan tombol "Pembersih Antrean".');
             } else {
                 toast.error(msg);
             }
         } finally {
             setUpdatingId(null);
+            toast.dismiss('signing');
         }
     };
 
