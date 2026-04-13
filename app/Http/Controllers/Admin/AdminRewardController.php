@@ -62,11 +62,11 @@ class AdminRewardController extends Controller
                 ->withHeader('Authorization', 'Key ' . $apiKey)
                 ->post("{$apiUrl}/payments", [
                     'payment' => [
-                        'amount'   => (float) $request->amount,
-                        'memo'     => $request->memo,
+                        'amount'   => number_format((float) $request->amount, 7, '.', ''),
+                        'memo'     => (string) $request->memo,
                         'metadata' => [
                             'type'    => 'reward',
-                            'user_id' => $user->id,
+                            'user_id' => (int) ($user->id ?? 0),
                         ],
                         'uid' => $piUid,
                     ],
@@ -118,7 +118,7 @@ class AdminRewardController extends Controller
             // If transaction is null, try to fetch it via GET with a small delay
             if (!isset($approvedData['transaction']) || !$approvedData['transaction']) {
                 Log::info("A2U: Transaction null after approve. Waiting and retrying with GET...");
-                sleep(2); // Wait for Pi server transaction generation
+                sleep(3); // Increased wait time
                 $getResponse = Http::withoutVerifying()
                     ->withHeader('Authorization', 'Key ' . $apiKey)
                     ->get("{$apiUrl}/payments/{$paymentId}");
@@ -261,7 +261,7 @@ class AdminRewardController extends Controller
 
             // Retry with GET if transaction null
             if (!isset($approvedData['transaction']) || !$approvedData['transaction']) {
-                sleep(2);
+                sleep(3);
                 $getResponse = Http::withoutVerifying()
                     ->withHeader('Authorization', 'Key ' . $apiKey)
                     ->get("{$apiUrl}/payments/{$paymentId}");
