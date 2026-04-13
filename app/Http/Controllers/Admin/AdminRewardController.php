@@ -393,9 +393,11 @@ class AdminRewardController extends Controller
                             break;
                         }
                     }
+                } else {
+                    Log::error("A2U: Horizon balance call failed on $workingNode. Status: " . $horizonRes->status() . " Body: " . $horizonRes->body());
                 }
             } catch (\Exception $e) {
-                Log::warning("Horizon balance fetch failed on $workingNode: " . $e->getMessage());
+                Log::warning("Horizon balance fetch exception on $workingNode: " . $e->getMessage());
             }
 
             return response()->json([
@@ -418,9 +420,9 @@ class AdminRewardController extends Controller
         $nodes = [
             'https://horizon-testnet.pi2.network',
             'https://api.testnet.minepi.com/horizon',
+            'https://138.197.233.224/horizon', // Direct IP Fallback
             'https://testnet-horizon.pi.network',
-            'https://horizon.testnet.pi2.network',
-            'https://api.minepi.com/horizon',
+            'https://api.testnet.minepi.com',
         ];
 
         foreach ($nodes as $node) {
