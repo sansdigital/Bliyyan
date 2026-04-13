@@ -115,11 +115,21 @@ class AdminOrderController extends Controller
                 $paymentData = $createResponse->json();
                 $paymentId = $paymentData['identifier'] ?? null;
 
-                // Handle ongoing payment handle
+                // Handle ongoing payment
                 if (!$createResponse->successful()) {
                     if (($paymentData['error'] ?? '') === 'ongoing_payment_found') {
                         $paymentId = $paymentData['payment']['identifier'] ?? null;
-                        Log::info("REFUND: Using ongoing payment ID: {$paymentId}");
+                        $stuckUid = $paymentData['payment']['uid'] ?? '';
+                        $stuckAmount = (float)($paymentData['payment']['amount'] ?? 0);
+                        $currentAmount = (float)$order->total_price;
+
+                        // CRITICAL: Only resume if it belongs to the EXACT SAME user and EXACT SAME amount
+                        if ($stuckUid === $piUid && abs($stuckAmount - $currentAmount) < 0.00001) {
+                            Log::info("REFUND: Using ongoing payment ID: {$paymentId} (Matching User & Amount)");
+                        } else {
+                            Log::warning("REFUND: Found mismatched stuck payment. Stuck UID: $stuckUid vs Current UID: $piUid");
+                            throw new \Exception("Ditemukan antrean transaksi Pi milik pesanan/user lain yang menggantung di Pi Server. Anda WAJIB menekan tombol \"Bersihkan Antrean\" terlebih dahulu sebelum melanjutkan Refund ini. {\"identifier\":\"$paymentId\"}");
+                        }
                     } else {
                         throw new \Exception("Pi API Create Error: " . ($paymentData['message'] ?? $createResponse->body()));
                     }
