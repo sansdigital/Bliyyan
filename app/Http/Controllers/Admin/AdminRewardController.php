@@ -115,9 +115,10 @@ class AdminRewardController extends Controller
                              ->with('stuck_payment_id', $paymentId);
             }
 
-            // If transaction is null, try to fetch it one more time via GET
+            // If transaction is null, try to fetch it via GET with a small delay
             if (!isset($approvedData['transaction']) || !$approvedData['transaction']) {
-                Log::info("A2U: Transaction null after approve. Retrying with GET...");
+                Log::info("A2U: Transaction null after approve. Waiting and retrying with GET...");
+                sleep(2); // Wait for Pi server transaction generation
                 $getResponse = Http::withoutVerifying()
                     ->withHeader('Authorization', 'Key ' . $apiKey)
                     ->get("{$apiUrl}/payments/{$paymentId}");
@@ -127,11 +128,14 @@ class AdminRewardController extends Controller
                 }
             }
 
-            $xdr = $approvedData['transaction']['tx_payload'] ?? null;
+            // Look for XDR in various possible fields
+            $xdr = $approvedData['transaction']['tx_payload'] ?? 
+                   $approvedData['transaction_payload'] ?? 
+                   $approvedData['tx_payload'] ?? null;
 
             if (!$xdr) {
                 Log::error("A2U Error: TX Payload (XDR) tetap tidak ditemukan.");
-                return back()->with('error', 'Pi Server tidak memberikan payload transaksi (XDR). Pastikan dompet aplikasi sudah benar-benar memiliki saldo dan terhubung di Developer Portal.')
+                return back()->with('error', 'Pi Server belum menghasilkan payload transaksi (XDR). Hal ini biasa terjadi jika ada delay atau masalah saldo di Dompet Aplikasi (Balance: 250 π terdeteksi). Silakan klik tombol Batalkan lalu coba lagi dalam beberapa saat.')
                              ->with('stuck_payment_id', $paymentId);
             }
 
@@ -257,18 +261,21 @@ class AdminRewardController extends Controller
 
             // Retry with GET if transaction null
             if (!isset($approvedData['transaction']) || !$approvedData['transaction']) {
+                sleep(2);
                 $getResponse = Http::withoutVerifying()
                     ->withHeader('Authorization', 'Key ' . $apiKey)
                     ->get("{$apiUrl}/payments/{$paymentId}");
                 if ($getResponse->successful()) $approvedData = $getResponse->json();
             }
 
-            $xdr = $approvedData['transaction']['tx_payload'] ?? null;
+            $xdr = $approvedData['transaction']['tx_payload'] ?? 
+                   $approvedData['transaction_payload'] ?? 
+                   $approvedData['tx_payload'] ?? null;
 
             if (!$xdr) {
                 return response()->json([
                     'success' => false, 
-                    'message' => 'Pi Server tidak mengirimkan XDR. Cek saldo dompet aplikasi Anda.',
+                    'message' => 'Pi Server belum mengirimkan XDR. Silakan batalkan transaksi ini dan coba beberapa saat lagi.',
                     'stuck_payment_id' => $paymentId
                 ], 400);
             }
@@ -336,7 +343,8 @@ class AdminRewardController extends Controller
                 ->post("{$apiUrl}/payments/{$request->payment_id}/cancel");
 
             if ($response->successful()) {
-                return response()->json(['success' => true, 'message' => 'Pembayaran berhasil dibatalkan.']);
+                session()->forget('stuck_payment_id');
+                return response()->json(['success' => true, 'message' => 'Pembayaran berhasil dibatalkan. Menghapus status nyangkut...']);
             }
 
             return response()->json(['success' => false, 'message' => 'Gagal membatalkan: ' . $response->body()], 400);

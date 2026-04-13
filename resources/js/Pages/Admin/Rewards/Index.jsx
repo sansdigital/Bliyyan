@@ -86,6 +86,7 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
         try {
             const res = await axios.post(route('admin.rewards.cancel-stuck'), { payment_id: pid });
             alert(res.data.message);
+            router.reload(); // Refresh to clear flash props and reload reward list
             fetchIncomplete();
         } catch (err) {
             alert('Gagal membatalkan: ' + (err.response?.data?.message || err.message));
