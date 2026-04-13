@@ -340,19 +340,34 @@ class AdminRewardController extends Controller
         $request->validate(['payment_id' => 'required|string']);
         $apiKey = config('services.pi.api_key');
         $apiUrl = config('services.pi.api_url');
+        $paymentId = $request->payment_id;
 
         try {
+            Log::info("A2U: Attempting to CANCEL stuck payment: {$paymentId}");
+
             $response = Http::withoutVerifying()
                 ->withHeader('Authorization', 'Key ' . $apiKey)
-                ->post("{$apiUrl}/payments/{$request->payment_id}/cancel");
+                ->post("{$apiUrl}/payments/{$paymentId}/cancel");
 
-            if ($response->successful()) {
+            Log::info("A2U Cancel Response for {$paymentId}: Status " . $response->status() . " Body: " . $response->body());
+
+            if ($response->successful() || $response->status() === 400) {
+                // Status 400 often means it's already cancelled or not found (which is good for us)
                 session()->forget('stuck_payment_id');
-                return response()->json(['success' => true, 'message' => 'Pembayaran berhasil dibatalkan. Menghapus status nyangkut...']);
+                return response()->json([
+                    'success' => true, 
+                    'message' => 'Perintah pembatalan dikirim. Silakan cek status kembali.',
+                    'api_status' => $response->status(),
+                    'api_response' => $response->json()
+                ]);
             }
 
-            return response()->json(['success' => false, 'message' => 'Gagal membatalkan: ' . $response->body()], 400);
+            return response()->json([
+                'success' => false, 
+                'message' => 'Gagal membatalkan: ' . $response->body()
+            ], 400);
         } catch (\Exception $e) {
+            Log::error("A2U Cancel Exception: " . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
