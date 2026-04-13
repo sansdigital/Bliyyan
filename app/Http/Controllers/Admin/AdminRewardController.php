@@ -267,4 +267,50 @@ class AdminRewardController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+    /**
+     * Cancel a stuck A2U payment identifier.
+     */
+    public function cancelStuckPayment(Request $request)
+    {
+        $request->validate(['payment_id' => 'required|string']);
+        $apiKey = config('services.pi.api_key');
+        $apiUrl = config('services.pi.api_url');
+
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeader('Authorization', 'Key ' . $apiKey)
+                ->post("{$apiUrl}/payments/{$request->payment_id}/cancel");
+
+            if ($response->successful()) {
+                return response()->json(['success' => true, 'message' => 'Pembayaran berhasil dibatalkan.']);
+            }
+
+            return response()->json(['success' => false, 'message' => 'Gagal membatalkan: ' . $response->body()], 400);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Check for any incomplete A2U payments on Pi Server.
+     */
+    public function checkIncompletePayments()
+    {
+        $apiKey = config('services.pi.api_key');
+        $apiUrl = config('services.pi.api_url');
+
+        try {
+            $response = Http::withoutVerifying()
+                ->withHeader('Authorization', 'Key ' . $apiKey)
+                ->get("{$apiUrl}/payments/incomplete_server_payments");
+
+            return response()->json([
+                'success' => true,
+                'data'    => $response->json()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }
