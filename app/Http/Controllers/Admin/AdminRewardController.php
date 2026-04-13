@@ -420,25 +420,25 @@ class AdminRewardController extends Controller
         $nodes = [
             'https://horizon-testnet.pi2.network',
             'https://api.testnet.minepi.com/horizon',
-            'https://138.197.233.224/horizon', // Direct IP Fallback
-            'https://testnet-horizon.pi.network',
+            'https://rpc.testnet.minepi.com',
             'https://api.testnet.minepi.com',
+            'http://18.138.151.181:8000', // Direct Node IP (Testnet)
+            'https://api.minepi.com/v2/horizon',
         ];
 
         foreach ($nodes as $node) {
             try {
-                // Increase timeout to 5s for the probe
+                // Check if we can reach the node root or accounts endpoint
                 $response = Http::withoutVerifying()
                     ->withHeaders(['User-Agent' => 'PiNetwork-A2U-Diagnostic/1.0'])
-                    ->timeout(5)
-                    ->get($node);
+                    ->timeout(3)
+                    ->get(rtrim($node, '/'));
                 
                 if ($response->successful() || $response->status() === 404) {
-                    Log::info("A2U: Found working node: $node");
+                    Log::info("A2U: Found potentially working node: $node (Status: " . $response->status() . ")");
                     return $node;
                 }
             } catch (\Exception $e) {
-                Log::debug("A2U: Node $node probe failed: " . $e->getMessage());
                 continue;
             }
         }
