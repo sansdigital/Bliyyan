@@ -96,13 +96,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/sales', [\App\Http\Controllers\Admin\AdminReportController::class, 'sales'])->name('admin.reports.sales');
         Route::resource('vouchers', \App\Http\Controllers\Admin\AdminVoucherController::class)->names('admin.vouchers');
         Route::delete('/products/image/{image}', [\App\Http\Controllers\Admin\AdminProductController::class, 'deleteImage'])->name('admin.products.image.delete');
-
-        // Pi A2U Rewards
-        Route::get('/rewards', [\App\Http\Controllers\Admin\AdminRewardController::class, 'index'])->name('admin.rewards.index');
-        Route::post('/rewards/send', [\App\Http\Controllers\Admin\AdminRewardController::class, 'send'])->name('admin.rewards.send');
-        Route::post('/rewards/send-by-uid', [\App\Http\Controllers\Admin\AdminRewardController::class, 'sendByUid'])->name('admin.rewards.send-by-uid');
-        Route::get('/rewards/check-incomplete', [\App\Http\Controllers\Admin\AdminRewardController::class, 'checkIncompletePayments'])->name('admin.rewards.check-incomplete');
-        Route::post('/rewards/cancel-stuck', [\App\Http\Controllers\Admin\AdminRewardController::class, 'cancelStuckPayment'])->name('admin.rewards.cancel-stuck');
     });
 });
 
