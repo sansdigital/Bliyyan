@@ -30,6 +30,7 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
     const [diagLoading, setDiagLoading] = useState(false);
     const [incompletePayments, setIncompletePayments] = useState([]);
     const [cancellingId, setCancellingId] = useState(null);
+    const [appWallet, setAppWallet] = useState({ address: '', balance: '...' });
 
     const { data, setData, post, processing, errors, reset } = useForm({
         user_id: '',
@@ -72,7 +73,10 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
         setDiagLoading(true);
         try {
             const res = await axios.get(route('admin.rewards.check-incomplete'));
-            setIncompletePayments(res.data.data.payments || []);
+            setIncompletePayments(res.data.data?.payments || []);
+            if (res.data.balance) {
+                setAppWallet({ address: res.data.address, balance: res.data.balance });
+            }
         } catch (err) {
             alert('Gagal mengecek data: ' + (err.response?.data?.message || err.message));
         } finally {
@@ -428,27 +432,60 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
                     </div>
                 </div>
 
-                {/* Diagnostic Section */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                    <div className="flex items-center justify-between mb-6">
+                {/* Wallet Info & Diagnostic Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Wallet Status Card */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-col justify-between">
                         <div>
-                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                                <Zap className="w-4 h-4 text-orange-500" />
-                                Diagnostic Tools
-                            </h3>
-                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Atasi transaksi yang nyangkut (stuck)</p>
+                            <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <Coins className="w-4 h-4 text-green-600" />
+                                </div>
+                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">App Wallet Status</h3>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Current Balance</p>
+                                    <p className="text-3xl font-black text-slate-800">π {appWallet.balance}</p>
+                                </div>
+                                
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Public Address</p>
+                                    <p className="text-[10px] font-mono text-slate-600 break-all leading-relaxed select-all">
+                                        {appWallet.address || 'Klik "Cek Incomplete" untuk muat'}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <button
-                            onClick={fetchIncomplete}
-                            disabled={diagLoading}
-                            className="px-4 py-2 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-all flex items-center gap-2"
-                        >
-                            {diagLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Clock className="w-3 h-3" />}
-                            Cek Incomplete Payments
-                        </button>
+                        
+                        <div className="mt-6 pt-6 border-t border-gray-50">
+                            <p className="text-[9px] text-gray-400 font-bold leading-relaxed italic">
+                                *Data saldo ditarik langsung dari jaringan blockchain Pi Horizon.
+                            </p>
+                        </div>
                     </div>
 
-                    {incompletePayments.length > 0 ? (
+                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <div>
+                                <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                    <Zap className="w-4 h-4 text-orange-500" />
+                                    Diagnostic Tools
+                                </h3>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Atasi transaksi yang nyangkut (stuck) & Cek Saldo</p>
+                            </div>
+                            <button
+                                onClick={fetchIncomplete}
+                                disabled={diagLoading}
+                                className="px-4 py-2 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-all flex items-center gap-2"
+                            >
+                                {diagLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Clock className="w-3 h-3" />}
+                                Cek Incomplete & Saldo
+                            </button>
+                        </div>
+
+                        {incompletePayments.length > 0 ? (
                         <div className="space-y-3">
                             {incompletePayments.map((p, idx) => (
                                 <div key={idx} className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-2xl">

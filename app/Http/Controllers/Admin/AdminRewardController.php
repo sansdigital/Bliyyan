@@ -360,15 +360,37 @@ class AdminRewardController extends Controller
     {
         $apiKey = config('services.pi.api_key');
         $apiUrl = config('services.pi.api_url');
+        $walletAddress = "GBJMXW5TOWM7CFUYBXWEJE5NJ33X7I2RFVPFC7J67MY4AAF5A3OQ5TC6";
 
         try {
-            $response = Http::withoutVerifying()
+            // 1. Fetch Incomplete Payments from Pi API
+            $paymentsResponse = Http::withoutVerifying()
                 ->withHeader('Authorization', 'Key ' . $apiKey)
                 ->get("{$apiUrl}/payments/incomplete_server_payments");
 
+            // 2. Fetch Wallet Balance from Pi Horizon (Testnet)
+            $balance = "N/A";
+            try {
+                $horizonUrl = "https://horizon-testnet.pi2.network/accounts/{$walletAddress}";
+                $horizonRes = Http::withoutVerifying()->get($horizonUrl);
+                if ($horizonRes->successful()) {
+                    $balances = $horizonRes->json()['balances'] ?? [];
+                    foreach ($balances as $b) {
+                        if (($b['asset_type'] ?? '') === 'native') {
+                            $balance = $b['balance'];
+                            break;
+                        }
+                    }
+                }
+            } catch (\Exception $e) {
+                Log::warning("Horizon balance fetch failed: " . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
-                'data'    => $response->json()
+                'data'    => $paymentsResponse->json(),
+                'balance' => $balance,
+                'address' => $walletAddress
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
