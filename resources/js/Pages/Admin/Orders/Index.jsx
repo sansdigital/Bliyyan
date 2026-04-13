@@ -113,7 +113,7 @@ export default function Index({ auth, orders }) {
             
             // PHASE 1: FE SIGNING REQUIRED
             if (response.data.requires_frontend_signing) {
-                toast.info("1/3 Menyiapkan modul Blockchain lokal...", { autoClose: false, toastId: 'signing' });
+                toast.info("1/3 Menyiapkan modul Blockchain lokal...");
                 
                 // Load stellar-sdk dynamically if it doesn't exist
                 if (!window.StellarSdk) {
@@ -130,7 +130,7 @@ export default function Index({ auth, orders }) {
                 const { wallet_seed, dest_address, amount, payment_id, horizon_url } = response.data;
                 
                 try {
-                    toast.update('signing', { render: "2/3 Membangun transaksi dan mengirim ke Jaringan Pi...", type: "info", isLoading: true });
+                    toast.info("2/3 Mengirim ke Jaringan Pi...");
                     
                     const server = new StellarSdk.Server(horizon_url, { allowHttp: true });
                     const keypair = StellarSdk.Keypair.fromSecret(wallet_seed);
@@ -153,14 +153,13 @@ export default function Index({ auth, orders }) {
                     const result = await server.submitTransaction(transaction);
                     
                     // PHASE 2: Hit backend again to complete
-                    toast.update('signing', { render: "3/3 Sinkronisasi dengan server Pi Network...", type: "info" });
+                    toast.info("3/3 Sinkronisasi dengan server...");
                     
                     const completeRes = await axios.post(route('admin.orders.refund', orderId), {
                         txid: result.hash,
                         payment_id: payment_id
                     });
                     
-                    toast.dismiss('signing');
                     toast.success(completeRes.data.success);
                     
                     // Update state success!
@@ -178,7 +177,6 @@ export default function Index({ auth, orders }) {
                         }));
                     }
                 } catch (blockchainErr) {
-                    toast.dismiss('signing');
                     console.error("Blockchain Error:", blockchainErr);
                     const specificDetail = blockchainErr.response?.data?.extras?.result_codes?.transaction || blockchainErr.message;
                     throw new Error("Gagal di level Node Blockchain: " + specificDetail);
@@ -207,7 +205,7 @@ export default function Index({ auth, orders }) {
             toast.success(response.data.success || 'Refund processed successfully.');
         } catch (error) {
             console.error('Refund error:', error);
-            const msg = error.message.includes('Node Blockchain') ? error.message : (error.response?.data?.error || 'Failed to process refund.');
+            const msg = error.message && error.message.includes('Node Blockchain') ? error.message : (error.response?.data?.error || 'Failed to process refund.');
             
             // Auto detection of stuck payment ID from error message
             const identifierMatch = msg.match(/"identifier":"([^"]+)"/);
@@ -219,7 +217,6 @@ export default function Index({ auth, orders }) {
             }
         } finally {
             setUpdatingId(null);
-            toast.dismiss('signing');
         }
     };
 
