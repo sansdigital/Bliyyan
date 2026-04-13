@@ -58,17 +58,18 @@ class AdminRewardController extends Controller
             Log::info("A2U Reward: Sending {$request->amount} Pi to user {$user->name} (UID: {$piUid})");
 
             // Step 1: Create the A2U payment
+            $amountStr = number_format((float) $request->amount, 3, '.', '');
             $createResponse = Http::withoutVerifying()
                 ->withHeader('Authorization', 'Key ' . $apiKey)
                 ->post("{$apiUrl}/payments", [
                     'payment' => [
-                        'amount'   => number_format((float) $request->amount, 7, '.', ''),
+                        'amount'   => (float) $amountStr,
                         'memo'     => (string) $request->memo,
                         'metadata' => [
                             'type'    => 'reward',
                             'user_id' => (int) ($user->id ?? 0),
                         ],
-                        'uid' => $piUid,
+                        'uid' => (string) $piUid,
                     ],
                     'payment_type' => 'A2U',
                 ]);
@@ -115,27 +116,36 @@ class AdminRewardController extends Controller
                              ->with('stuck_payment_id', $paymentId);
             }
 
-            // If transaction is null, try to fetch it via GET with a small delay
-            if (!isset($approvedData['transaction']) || !$approvedData['transaction']) {
-                Log::info("A2U: Transaction null after approve. Waiting and retrying with GET...");
-                sleep(3); // Increased wait time
-                $getResponse = Http::withoutVerifying()
-                    ->withHeader('Authorization', 'Key ' . $apiKey)
-                    ->get("{$apiUrl}/payments/{$paymentId}");
-                
-                if ($getResponse->successful()) {
-                    $approvedData = $getResponse->json();
+            // Polling for XDR (Try up to 5 times)
+            $xdr = null;
+            $maxAttempts = 5;
+            
+            for ($i = 1; $i <= $maxAttempts; $i++) {
+                $xdr = $approvedData['transaction']['tx_payload'] ?? 
+                       $approvedData['transaction_payload'] ?? 
+                       $approvedData['tx_payload'] ?? null;
+
+                if ($xdr) {
+                    Log::info("A2U: XDR found on attempt $i");
+                    break;
+                }
+
+                if ($i < $maxAttempts) {
+                    Log::info("A2U: XDR null (attempt $i). Waiting 3s...");
+                    sleep(3);
+                    $getResponse = Http::withoutVerifying()
+                        ->withHeader('Authorization', 'Key ' . $apiKey)
+                        ->get("{$apiUrl}/payments/{$paymentId}");
+                    
+                    if ($getResponse->successful()) {
+                        $approvedData = $getResponse->json();
+                    }
                 }
             }
 
-            // Look for XDR in various possible fields
-            $xdr = $approvedData['transaction']['tx_payload'] ?? 
-                   $approvedData['transaction_payload'] ?? 
-                   $approvedData['tx_payload'] ?? null;
-
             if (!$xdr) {
-                Log::error("A2U Error: TX Payload (XDR) tetap tidak ditemukan.");
-                return back()->with('error', 'Pi Server belum menghasilkan payload transaksi (XDR). Hal ini biasa terjadi jika ada delay atau masalah saldo di Dompet Aplikasi (Balance: 250 π terdeteksi). Silakan klik tombol Batalkan lalu coba lagi dalam beberapa saat.')
+                Log::error("A2U Error: TX Payload (XDR) tetap tidak ditemukan setelah {$maxAttempts} percobaan.");
+                return back()->with('error', 'Pi Server belum menghasilkan payload transaksi (XDR). Hal ini biasa terjadi jika ada delay blockchain. Silakan klik tombol Batalkan lalu coba lagi dalam beberapa saat.')
                              ->with('stuck_payment_id', $paymentId);
             }
 
@@ -209,14 +219,15 @@ class AdminRewardController extends Controller
         try {
             Log::info("A2U Direct: Sending {$request->amount} Pi to UID: {$piUid}");
 
+            $amountStr = number_format((float) $request->amount, 3, '.', '');
             $createResponse = Http::withoutVerifying()
                 ->withHeader('Authorization', 'Key ' . $apiKey)
                 ->post("{$apiUrl}/payments", [
                     'payment' => [
-                        'amount'   => (float) $request->amount,
-                        'memo'     => $request->memo,
+                        'amount'   => (float) $amountStr,
+                        'memo'     => (string) $request->memo,
                         'metadata' => ['type' => 'reward'],
-                        'uid'      => $piUid,
+                        'uid'      => (string) $piUid,
                     ],
                     'payment_type' => 'A2U',
                 ]);
@@ -262,23 +273,30 @@ class AdminRewardController extends Controller
                 ], 400);
             }
 
-            // Retry with GET if transaction null
-            if (!isset($approvedData['transaction']) || !$approvedData['transaction']) {
-                sleep(3);
-                $getResponse = Http::withoutVerifying()
-                    ->withHeader('Authorization', 'Key ' . $apiKey)
-                    ->get("{$apiUrl}/payments/{$paymentId}");
-                if ($getResponse->successful()) $approvedData = $getResponse->json();
-            }
+            // Polling for XDR (Direct Method)
+            $xdr = null;
+            $maxAttempts = 5;
+            
+            for ($i = 1; $i <= $maxAttempts; $i++) {
+                $xdr = $approvedData['transaction']['tx_payload'] ?? 
+                       $approvedData['transaction_payload'] ?? 
+                       $approvedData['tx_payload'] ?? null;
 
-            $xdr = $approvedData['transaction']['tx_payload'] ?? 
-                   $approvedData['transaction_payload'] ?? 
-                   $approvedData['tx_payload'] ?? null;
+                if ($xdr) break;
+
+                if ($i < $maxAttempts) {
+                    sleep(3);
+                    $getResponse = Http::withoutVerifying()
+                        ->withHeader('Authorization', 'Key ' . $apiKey)
+                        ->get("{$apiUrl}/payments/{$paymentId}");
+                    if ($getResponse->successful()) $approvedData = $getResponse->json();
+                }
+            }
 
             if (!$xdr) {
                 return response()->json([
                     'success' => false, 
-                    'message' => 'Pi Server belum mengirimkan XDR. Silakan batalkan transaksi ini dan coba beberapa saat lagi.',
+                    'message' => 'Pi Server belum mengirimkan XDR setelah 5x percobaan. Silakan batalkan transaksi ini dan coba lagi.',
                     'stuck_payment_id' => $paymentId
                 ], 400);
             }
