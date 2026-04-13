@@ -113,66 +113,42 @@ class AdminRewardController extends Controller
                              ->with('stuck_payment_id', $paymentId);
             }
 
-            // Polling for XDR (Ultra Patience Tool)
-            $xdr = null;
-            $maxAttempts = 15; // Increased to 15 (approx 1.5 mins)
-            $currentApi = $apiUrl;
-            
-            for ($i = 1; $i <= $maxAttempts; $i++) {
-                // LOG THE FULL DATA for deep analysis
-                Log::info("A2U Poll Attempt $i: JSON Body: " . json_encode($approvedData));
-
-                // Deep search for XDR
-                $xdr = $approvedData['transaction']['tx_payload'] ?? 
-                       $approvedData['transaction_payload'] ?? 
-                       $approvedData['tx_payload'] ?? 
-                       ($approvedData['payment']['transaction']['tx_payload'] ?? null);
-
-                if ($xdr) {
-                    Log::info("A2U SUCCESS: XDR found on attempt $i");
-                    break;
-                }
-
-                if ($i < $maxAttempts) {
-                    Log::info("A2U: XDR null (attempt $i). Waiting 5s...");
-                    sleep(5); 
-                    
-                    try {
-                        $getResponse = Http::withoutVerifying()
-                            ->withHeader('Authorization', 'Key ' . $apiKey)
-                            ->get("{$currentApi}/payments/{$paymentId}");
-                        if ($getResponse->successful()) $approvedData = $getResponse->json();
-                    } catch (\Exception $e) {
-                        Log::error("A2U Poll Exception: " . $e->getMessage());
-                    }
-                }
-            }
-
-            if (!$xdr) {
-                Log::error("A2U CRITICAL: TX Payload (XDR) tetap tidak ditemukan setelah {$maxAttempts} percobaan.");
-                return back()->with('error', 'Pi Server belum menghasilkan payload transaksi (XDR). Antrian blockchain sedang padat. Silakan tunggu 5-10 menit tanpa melakukan pengiriman ulang agar antrian bersih otomatis.')
-                             ->with('stuck_payment_id', $paymentId);
-            }
-
-            // Step 3: Sign and Submit to Blockchain via Node.js Bridge
+            // Step 3: BUILD, SIGN, and SUBMIT directly to Blockchain (MANUAL MODE)
             $walletSeed = config('services.pi.wallet_seed');
             if (!$walletSeed) {
                 return back()->with('error', 'PI_WALLET_SEED belum dikonfigurasi di file .env');
             }
 
+            // Get target address
+            $destAddress = $approvedData['to_address'] ?? ($approvedData['payment']['to_address'] ?? null);
+            if (!$destAddress) {
+                $getRes = Http::withoutVerifying()->withHeader('Authorization', 'Key ' . $apiKey)->get("{$apiUrl}/payments/{$paymentId}");
+                $getData = $getRes->json();
+                $destAddress = $getData['to_address'] ?? ($getData['payment']['to_address'] ?? null);
+            }
+
+            if (!$destAddress) {
+                return back()->with('error', 'Gagal mendapatkan alamat wallet tujuan (Destination Address).')
+                             ->with('stuck_payment_id', $paymentId);
+            }
+
             $workingNode = $this->getBestHorizonUrl();
-            Log::info("A2U: Using node $workingNode for signing.");
+            Log::info("A2U Reward: Constructing manual transaction to $destAddress via $workingNode");
 
             $nodeScript = base_path('sign_pi.js');
-            $command = "node $nodeScript \"$walletSeed\" \"$xdr\" \"$workingNode\"";
+            $amountStr = number_format((float) $request->amount, 7, '.', '');
+            
+            // Command: build <seed> <destination> <amount> <memoText> <horizonUrl>
+            $command = "node $nodeScript build \"$walletSeed\" \"$destAddress\" \"$amountStr\" \"$paymentId\" \"$workingNode\"";
             $output = shell_exec($command);
             $result = json_decode($output, true);
 
-            Log::info("A2U Blockchain Result: " . $output);
+            Log::info("A2U Reward Blockchain Result: " . $output);
 
             if (!isset($result['success']) || !$result['success']) {
                 $errMsg = $result['error'] ?? 'Gagal melakukan signing transaksi blockchain.';
-                return back()->with('error', 'Blockchain Error: ' . (is_array($errMsg) ? json_encode($errMsg) : $errMsg));
+                return back()->with('error', 'Blockchain Error: ' . (is_array($errMsg) ? json_encode($errMsg) : $errMsg))
+                             ->with('stuck_payment_id', $paymentId);
             }
 
             $txid = $result['txid'];
@@ -184,7 +160,7 @@ class AdminRewardController extends Controller
                     'txid' => $txid,
                 ]);
 
-            Log::info("A2U Complete Response: " . $completeResponse->body());
+            Log::info("A2U Reward Complete Status: " . $completeResponse->status());
 
             // Save reward record
             \App\Models\PiReward::create([
@@ -198,7 +174,7 @@ class AdminRewardController extends Controller
             ]);
 
             Log::info("A2U Reward SUCCESS: Payment {$paymentId} sent to {$user->name}");
-            return back()->with('success', "Reward π{$request->amount} berhasil dikirim ke {$user->name}!");
+            return back()->with('success', "Reward π{$request->amount} BERHASIL dikirim via Blockchain ke {$user->name}!");
 
         } catch (\Exception $e) {
             Log::error("A2U Reward Exception: " . $e->getMessage());
@@ -278,68 +254,43 @@ class AdminRewardController extends Controller
                 ], 400);
             }
 
-            // Polling for XDR (Ultra Patience Tool for Direct Send)
-            $xdr = null;
-            $maxAttempts = 15;
-            $currentApi = $apiUrl;
-            
-            for ($i = 1; $i <= $maxAttempts; $i++) {
-                // LOG THE FULL DATA for deep analysis
-                Log::info("A2U Direct Poll Attempt $i: JSON Body: " . json_encode($approvedData));
-
-                // Deep search for XDR
-                $xdr = $approvedData['transaction']['tx_payload'] ?? 
-                       $approvedData['transaction_payload'] ?? 
-                       $approvedData['tx_payload'] ?? 
-                       ($approvedData['payment']['transaction']['tx_payload'] ?? null);
-
-                if ($xdr) {
-                    Log::info("A2U Direct SUCCESS: XDR found on attempt $i");
-                    break;
-                }
-
-                if ($i < $maxAttempts) {
-                    Log::info("A2U Direct: XDR null (attempt $i). Waiting 5s...");
-                    sleep(5);
-                    
-                    try {
-                        $getResponse = Http::withoutVerifying()
-                            ->withHeader('Authorization', 'Key ' . $apiKey)
-                            ->get("{$currentApi}/payments/{$paymentId}");
-                        if ($getResponse->successful()) $approvedData = $getResponse->json();
-                    } catch (\Exception $e) {
-                        Log::error("A2U Direct Poll Error: " . $e->getMessage());
-                    }
-                }
-            }
-
-            if (!$xdr) {
-                return response()->json([
-                    'success' => false, 
-                    'message' => 'Pi Server belum menghasilkan XDR setelah 15x percobaan. Silakan tunggu 5 menit lalu coba lagi.',
-                    'stuck_payment_id' => $paymentId
-                ], 400);
-            }
-
-            // Step 3: Sign & Submit via Node Bridge
+            // Step 3: BUILD, SIGN, and SUBMIT directly to Blockchain (MANUAL MODE)
             $walletSeed = config('services.pi.wallet_seed');
             if (!$walletSeed) {
                 return response()->json(['success' => false, 'message' => 'PI_WALLET_SEED belum dikonfigurasi.'], 400);
             }
 
+            // Get target address
+            $destAddress = $approvedData['to_address'] ?? ($approvedData['payment']['to_address'] ?? null);
+            if (!$destAddress) {
+                $getRes = Http::withoutVerifying()->withHeader('Authorization', 'Key ' . $apiKey)->get("{$apiUrl}/payments/{$paymentId}");
+                $getData = $getRes->json();
+                $destAddress = $getData['to_address'] ?? ($getData['payment']['to_address'] ?? null);
+            }
+
+            if (!$destAddress) {
+                return response()->json(['success' => false, 'message' => 'Gagal mendapatkan alamat wallet tujuan.'], 400);
+            }
+
             $workingNode = $this->getBestHorizonUrl();
             $nodeScript = base_path('sign_pi.js');
-            $command = "node $nodeScript \"$walletSeed\" \"$xdr\" \"$workingNode\"";
+            $amountStr = number_format((float) $request->amount, 7, '.', '');
+            
+            // Command: build <seed> <destination> <amount> <memoText> <horizonUrl>
+            $command = "node $nodeScript build \"$walletSeed\" \"$destAddress\" \"$amountStr\" \"$paymentId\" \"$workingNode\"";
             $output = shell_exec($command);
             $result = json_decode($output, true);
 
+            Log::info("A2U Direct Blockchain Result: " . $output);
+
             if (!isset($result['success']) || !$result['success']) {
-                return response()->json(['success' => false, 'message' => 'Blockchain Error: ' . ($result['error'] ?? 'Unknown error')], 400);
+                $errMsg = $result['error'] ?? 'Gagal melakukan signing transaksi blockchain.';
+                return response()->json(['success' => false, 'message' => 'Blockchain Error: ' . (is_array($errMsg) ? json_encode($errMsg) : $errMsg)], 400);
             }
 
             $txid = $result['txid'];
 
-            // Step 4: Complete
+            // Step 4: Complete the payment on Pi Server
             Http::withoutVerifying()
                 ->withHeader('Authorization', 'Key ' . $apiKey)
                 ->post("{$apiUrl}/payments/{$paymentId}/complete", ['txid' => $txid]);
@@ -359,7 +310,7 @@ class AdminRewardController extends Controller
 
             return response()->json([
                 'success'    => true,
-                'message'    => "Reward π{$request->amount} berhasil dikirim!",
+                'message'    => "Reward π{$request->amount} BERHASIL dikirim via Blockchain!",
                 'payment_id' => $paymentId,
                 'txid'       => $txid,
             ]);

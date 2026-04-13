@@ -1,48 +1,96 @@
 const StellarSdk = require('stellar-sdk');
 
-// Configuration Defaults
-const DEFAULT_HORIZON_URL = 'https://horizon-testnet.pi2.network';
-const NETWORK_PASSPHRASE = 'Pi Network Testnet';
+/**
+ * Pi Network Transaction Tool
+ * 
+ * Usage 1 (Sign Only):  node sign_pi.js sign <seed> <xdr> <horizonUrl>
+ * Usage 2 (Build & Sign): node sign_pi.js build <seed> <destination> <amount> <memoText> <horizonUrl>
+ */
 
-async function signAndSubmit(seed, transactionXdr, customHorizonUrl) {
-    try {
-        const url = customHorizonUrl || DEFAULT_HORIZON_URL;
-        StellarSdk.Network.use(new StellarSdk.Network(NETWORK_PASSPHRASE));
-        const server = new StellarSdk.Server(url);
-        const sourceKeys = StellarSdk.Keypair.fromSecret(seed);
+const mode = process.argv[2];
 
-        // Load the transaction from XDR
-        const transaction = new StellarSdk.Transaction(transactionXdr, NETWORK_PASSPHRASE);
+if (mode === 'sign') {
+    const seed = process.argv[3];
+    const xdr = process.argv[4];
+    const horizonUrl = process.argv[5] || 'https://api.testnet.minepi.com';
 
-        // Sign the transaction
-        transaction.sign(sourceKeys);
-
-        // Submit to the blockchain
-        const response = await server.submitTransaction(transaction);
-        
-        console.log(JSON.stringify({
-            success: true,
-            txid: response.hash,
-            node: url
-        }));
-    } catch (error) {
-        console.error(JSON.stringify({
-            success: false,
-            error: error.response ? error.response.data : error.message
-        }));
+    if (!seed || !xdr) {
+        console.log(JSON.stringify({ success: false, error: 'Missing seed or XDR' }));
         process.exit(1);
     }
+
+    (async () => {
+        try {
+            const server = new StellarSdk.Server(horizonUrl, { allowHttp: true });
+            const keypair = StellarSdk.Keypair.fromSecret(seed);
+            const transaction = new StellarSdk.Transaction(xdr, 'Pi Testnet');
+            
+            transaction.sign(keypair);
+            const result = await server.submitTransaction(transaction);
+            console.log(JSON.stringify({ success: true, txid: result.hash }));
+        } catch (e) {
+            console.log(JSON.stringify({ success: false, error: e.response ? e.response.data : e.message }));
+        }
+    })();
+} 
+else if (mode === 'build') {
+    const seed = process.argv[3];
+    const destination = process.argv[4];
+    const amount = process.argv[5];
+    const memoText = process.argv[6];
+    const horizonUrl = process.argv[7] || 'https://api.testnet.minepi.com';
+
+    if (!seed || !destination || !amount || !memoText) {
+        console.log(JSON.stringify({ success: false, error: 'Missing build arguments' }));
+        process.exit(1);
+    }
+
+    (async () => {
+        try {
+            const server = new StellarSdk.Server(horizonUrl, { allowHttp: true });
+            const keypair = StellarSdk.Keypair.fromSecret(seed);
+            const sourceAccount = await server.loadAccount(keypair.publicKey());
+
+            const transaction = new StellarSdk.TransactionBuilder(sourceAccount, {
+                fee: '100', // Standard fee
+                networkPassphrase: 'Pi Testnet',
+            })
+            .addOperation(StellarSdk.Operation.payment({
+                destination: destination,
+                asset: StellarSdk.Asset.native(),
+                amount: amount
+            }))
+            .addMemo(StellarSdk.Memo.text(memoText))
+            .setTimeout(60)
+            .build();
+
+            transaction.sign(keypair);
+            const result = await server.submitTransaction(transaction);
+            console.log(JSON.stringify({ success: true, txid: result.hash }));
+        } catch (e) {
+            const errorDetail = e.response && e.response.data && e.response.data.extras 
+                ? e.response.data.extras.result_codes 
+                : (e.response ? e.response.data : e.message);
+            console.log(JSON.stringify({ success: false, error: errorDetail }));
+        }
+    })();
 }
-
-// Get arguments from command line
-const args = process.argv.slice(2);
-if (args.length < 2) {
-    console.error(JSON.stringify({ success: false, error: "Missing arguments: node sign_pi.js <seed> <xdr> [horizon_url]" }));
-    process.exit(1);
+else {
+    // Original behavior for backward compatibility if no mode specified
+    const seed = process.argv[2];
+    const xdr = process.argv[3];
+    const horizonUrl = process.argv[4] || 'https://api.testnet.minepi.com';
+    
+    (async () => {
+        try {
+            const server = new StellarSdk.Server(horizonUrl, { allowHttp: true });
+            const keypair = StellarSdk.Keypair.fromSecret(seed);
+            const transaction = new StellarSdk.Transaction(xdr, 'Pi Testnet');
+            transaction.sign(keypair);
+            const result = await server.submitTransaction(transaction);
+            console.log(JSON.stringify({ success: true, txid: result.hash }));
+        } catch (e) {
+            console.log(JSON.stringify({ success: false, error: e.message }));
+        }
+    })();
 }
-
-const seed = args[0];
-const transactionXdr = args[1];
-const horizonUrl = args[2] || null;
-
-signAndSubmit(seed, transactionXdr, horizonUrl);

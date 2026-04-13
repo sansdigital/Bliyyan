@@ -56,85 +56,119 @@ class AdminOrderController extends Controller
                 $piUid = str_replace('@pi.network', '', $user->pi_uid);
                 $apiKey = config('services.pi.api_key');
                 $apiUrl = config('services.pi.api_url');
+                $walletSeed = config('services.pi.wallet_seed');
 
-                Log::info("REFUND ATTEMPT: Order #{$order->id} (User: {$user->name}, UID: {$piUid})");
+                if (!$walletSeed) {
+                    throw new \Exception("PI_WALLET_SEED is missing in .env");
+                }
 
-                // 1. Create A2U Payment
+                Log::info("REFUND START: Order #{$order->id} (User: {$user->name}, UID: {$piUid})");
+
+                // Step 1: Create A2U Payment record on Pi Server
                 $createResponse = Http::withoutVerifying()
                     ->withHeader('Authorization', 'Key ' . $apiKey)
                     ->post("{$apiUrl}/payments", [
                         'payment' => [
                             'amount'   => (float)$order->total_price,
                             'memo'     => "Refund Order #" . str_pad($order->id, 4, '0', STR_PAD_LEFT),
-                            'metadata' => [
-                                'type'     => 'refund',
-                                'order_id' => $order->id,
-                            ],
-                            'uid' => $piUid,
+                            'metadata' => ['order_id' => (string)$order->id],
+                            'uid'      => $piUid,
                         ],
                         'payment_type' => 'A2U',
                     ]);
 
-                if ($createResponse->failed()) {
-                    throw new \Exception("Create Failure: " . $createResponse->body());
+                $paymentData = $createResponse->json();
+                $paymentId = $paymentData['identifier'] ?? null;
+
+                // Handle ongoing payment handle
+                if (!$createResponse->successful()) {
+                    if (($paymentData['error'] ?? '') === 'ongoing_payment_found') {
+                        $paymentId = $paymentData['payment']['identifier'] ?? null;
+                        Log::info("REFUND: Using ongoing payment ID: {$paymentId}");
+                    } else {
+                        throw new \Exception("Pi API Create Error: " . ($paymentData['message'] ?? $createResponse->body()));
+                    }
                 }
 
-                $paymentData = $createResponse->json();
-                $paymentId = $paymentData['identifier'];
+                if (!$paymentId) {
+                    throw new \Exception("Gagal mendapatkan Payment ID dari server Pi.");
+                }
 
-                // 2. Approve
+                // Step 2: Approve the payment
                 $approveResponse = Http::withoutVerifying()
                     ->withHeader('Authorization', 'Key ' . $apiKey)
                     ->post("{$apiUrl}/payments/{$paymentId}/approve");
 
-                if ($approveResponse->failed()) {
-                    throw new \Exception("Approve Failure: " . $approveResponse->body());
+                $approvedData = $approveResponse->json();
+                if (!$approveResponse->successful() && ($approvedData['error'] ?? '') !== 'already_approved') {
+                    throw new \Exception("Pi API Approve Error: " . $approveResponse->body());
                 }
 
-                // 3. Polling for TXID
-                $txid = null;
-                for ($i = 0; $i < 5; $i++) {
-                    $checkResponse = Http::withoutVerifying()
-                        ->withHeader('Authorization', 'Key ' . $apiKey)
-                        ->get("{$apiUrl}/payments/{$paymentId}");
-                    
-                    if ($checkResponse->successful()) {
-                        $checkData = $checkResponse->json();
-                        $txid = $checkData['transaction']['txid'] ?? null;
-                        if ($txid) break;
-                    }
-                    sleep(1);
+                // Step 3: BUILD, SIGN, and SUBMIT directly to Blockchain (MANUAL MODE)
+                // We extract the destination address from the payment data
+                $destAddress = $approvedData['to_address'] ?? ($approvedData['payment']['to_address'] ?? null);
+                
+                // If not in approve response, try to GET it
+                if (!$destAddress) {
+                    $getRes = Http::withoutVerifying()->withHeader('Authorization', 'Key ' . $apiKey)->get("{$apiUrl}/payments/{$paymentId}");
+                    $getData = $getRes->json();
+                    $destAddress = $getData['to_address'] ?? ($getData['payment']['to_address'] ?? null);
                 }
 
-                if (!$txid) {
-                    throw new \Exception("TXID Kosong (Lag Blockchain). Gunakan tombol Bersihkan Antrean.");
+                if (!$destAddress) {
+                    throw new \Exception("Gagal mendapatkan Alamat Wallet tujuan (Destination Address).");
                 }
 
-                // 4. Complete
+                $horizonUrl = "https://api.testnet.minepi.com"; // Default for testnet
+                // Try to find best node
+                $nodes = ['https://api.testnet.minepi.com', 'https://rpc.testnet.minepi.com'];
+                foreach($nodes as $n) {
+                    try { if(Http::withoutVerifying()->get($n)->successful()) { $horizonUrl = $n; break; } } catch(\Exception $e){}
+                }
+
+                Log::info("REFUND ACTION: Constructing manual transaction to $destAddress via $horizonUrl");
+                
+                $nodeScript = base_path('sign_pi.js');
+                $amountStr = number_format((float)$order->total_price, 7, '.', ''); // Stellar precision
+                
+                // Command: build <seed> <destination> <amount> <memoText> <horizonUrl>
+                $command = "node $nodeScript build \"$walletSeed\" \"$destAddress\" \"$amountStr\" \"$paymentId\" \"$horizonUrl\"";
+                $output = shell_exec($command);
+                $result = json_decode($output, true);
+
+                Log::info("REFUND Blockchain Result: " . $output);
+
+                if (!isset($result['success']) || !$result['success']) {
+                    $errorMsg = is_array($result['error'] ?? null) ? json_encode($result['error']) : ($result['error'] ?? 'Unknown blockchain error');
+                    throw new \Exception("Blockchain Failure: " . $errorMsg);
+                }
+
+                $txid = $result['txid'];
+
+                // Step 4: Complete the payment record on Pi API
                 $completeResponse = Http::withoutVerifying()
                     ->withHeader('Authorization', 'Key ' . $apiKey)
                     ->post("{$apiUrl}/payments/{$paymentId}/complete", [
                         'txid' => $txid
                     ]);
                 
-                if ($completeResponse->failed()) {
-                    throw new \Exception("Complete Failure: " . $completeResponse->body());
-                }
+                Log::info("REFUND Complete Status: " . $completeResponse->status());
 
-                // Final Update
+                // Final Update Local DB
                 $order->update(['status' => 'refunded']);
                 if ($order->payment) {
                     $order->payment->update(['status' => 'refunded']);
                 }
 
                 return response()->json([
-                    'success' => "Refund senilai π{$order->total_price} berhasil dikirim.",
-                    'status' => 'refunded'
+                    'success' => "Refund senilai π{$order->total_price} BERHASIL dikirim langsung via Blockchain ke Wallet User.",
+                    'status' => 'refunded',
+                    'txid'   => $txid
                 ]);
             });
 
         } catch (\Exception $e) {
-            Log::error("Refund Critical Error #{$order->id}: " . $e->getMessage());
+            Log::error("Refund Final Error #{$order->id}: " . $e->getMessage());
             return response()->json(['error' => 'Gagal refund: ' . $e->getMessage()], 500);
         }
     }
