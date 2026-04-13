@@ -418,24 +418,22 @@ class AdminRewardController extends Controller
     private function getBestHorizonUrl()
     {
         $nodes = [
-            'https://horizon-testnet.pi2.network',
-            'https://api.testnet.minepi.com/horizon',
-            'https://rpc.testnet.minepi.com',
             'https://api.testnet.minepi.com',
-            'http://18.138.151.181:8000', // Direct Node IP (Testnet)
-            'https://api.minepi.com/v2/horizon',
+            'https://rpc.testnet.minepi.com',
+            'http://18.138.151.181:8000',
+            'https://horizon-testnet.pi2.network', // Moved to bottom as it's dns-blocked
         ];
 
         foreach ($nodes as $node) {
             try {
-                // Check if we can reach the node root or accounts endpoint
+                // Check if we can reach the node root. MUST be 200.
                 $response = Http::withoutVerifying()
                     ->withHeaders(['User-Agent' => 'PiNetwork-A2U-Diagnostic/1.0'])
                     ->timeout(3)
                     ->get(rtrim($node, '/'));
                 
-                if ($response->successful() || $response->status() === 404) {
-                    Log::info("A2U: Found potentially working node: $node (Status: " . $response->status() . ")");
+                if ($response->successful()) { 
+                    Log::info("A2U: Found working node: $node (Status: " . $response->status() . ")");
                     return $node;
                 }
             } catch (\Exception $e) {
