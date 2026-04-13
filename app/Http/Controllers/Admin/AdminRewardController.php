@@ -374,10 +374,12 @@ class AdminRewardController extends Controller
 
             // 2. Fetch Wallet Balance from BEST working Horizon node
             $balance = "N/A";
-            $workingNode = $this->getBestHorizonUrl();
+            $workingNode = rtrim($this->getBestHorizonUrl(), '/');
             
             try {
                 $horizonUrl = "{$workingNode}/accounts/{$walletAddress}";
+                Log::info("A2U: Fetching balance from $horizonUrl");
+                
                 // Increase timeout for real balance fetch to 10s
                 $horizonRes = Http::withoutVerifying()
                     ->withHeaders(['User-Agent' => 'PiNetwork-A2U-Diagnostic/1.0'])
