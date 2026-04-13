@@ -1,5 +1,5 @@
 import AdminLayout from '@/Layouts/AdminLayout';
-import { Head, useForm, router } from '@inertiajs/react';
+import { Head, useForm, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import {
     Send,
@@ -18,6 +18,9 @@ import {
 import axios from 'axios';
 
 export default function RewardsIndex({ auth, users, rewardLog }) {
+    const { flash } = usePage().props;
+    const stuckPaymentId = usePage().props.stuck_payment_id;
+    
     const [activeTab, setActiveTab] = useState('registered');
     const [uidInput, setUidInput] = useState('');
     const [uidAmount, setUidAmount] = useState('0.001');
@@ -58,7 +61,7 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
             setUidResult({
                 success: false,
                 message: err.response?.data?.message || 'Terjadi kesalahan.',
-                payment_id: err.response?.data?.raw?.identifier // Catch ID even on error to allow cancel
+                payment_id: err.response?.data?.stuck_payment_id || err.response?.data?.raw?.identifier // Enhanced detection
             });
         } finally {
             setUidLoading(false);
@@ -249,6 +252,34 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
                                             <><Zap className="w-4 h-4" /> Kirim A2U Reward</>
                                         )}
                                     </button>
+
+                                    {flash.error && (
+                                        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col gap-3">
+                                            <div className="flex items-start gap-3">
+                                                <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                                                <p className="text-xs font-black text-red-700">{flash.error}</p>
+                                            </div>
+                                            {stuckPaymentId && (
+                                                <div className="pt-2 border-t border-red-100 flex items-center justify-between">
+                                                    <p className="text-[10px] text-red-600 font-bold uppercase italic">ID Nyangkut: {stuckPaymentId}</p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleCancelPayment(stuckPaymentId)}
+                                                        className="px-3 py-1 bg-red-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+                                                    >
+                                                        {cancellingId === stuckPaymentId ? 'Wait...' : 'Batalkan Sekarang'}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {flash.success && (
+                                        <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+                                            <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                                            <p className="text-xs font-black text-green-700">{flash.success}</p>
+                                        </div>
+                                    )}
                                 </form>
                             ) : (
                                 <form onSubmit={handleSendByUid} className="space-y-4">
