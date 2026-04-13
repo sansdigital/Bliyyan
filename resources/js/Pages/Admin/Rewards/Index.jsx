@@ -18,7 +18,7 @@ import {
 import axios from 'axios';
 
 export default function RewardsIndex({ auth, users, rewardLog }) {
-    const { flash } = usePage().props;
+    const flash = usePage().props.flash || {};
     const stuckPaymentId = usePage().props.stuck_payment_id;
     
     const [activeTab, setActiveTab] = useState('registered');
@@ -253,7 +253,7 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
                                         )}
                                     </button>
 
-                                    {flash.error && (
+                                    {flash?.error && (
                                         <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col gap-3">
                                             <div className="flex items-start gap-3">
                                                 <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
@@ -274,7 +274,7 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
                                         </div>
                                     )}
 
-                                    {flash.success && (
+                                    {flash?.success && (
                                         <div className="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
                                             <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                                             <p className="text-xs font-black text-green-700">{flash.success}</p>
