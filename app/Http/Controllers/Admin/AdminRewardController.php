@@ -77,7 +77,16 @@ class AdminRewardController extends Controller
 
             if (!$createResponse->successful()) {
                 Log::error("A2U Create Failed: " . $createResponse->body());
-                return back()->with('error', 'Gagal membuat pembayaran: ' . ($createResponse->json()['error_type'] ?? $createResponse->body()));
+                $errorData = $createResponse->json();
+                
+                // If there's an ongoing payment, store the ID so the user can cancel it
+                if (($errorData['error'] ?? '') === 'ongoing_payment_found') {
+                    $stuckId = $errorData['payment']['identifier'] ?? null;
+                    return back()->with('error', 'Transaksi Tertunda Ditemukan: Silakan batalkan transaksi yang sedang berjalan (ID: ' . $stuckId . ') sebelum mencoba lagi.')
+                                 ->with('stuck_payment_id', $stuckId);
+                }
+
+                return back()->with('error', 'Gagal membuat pembayaran: ' . ($errorData['error_type'] ?? $createResponse->body()));
             }
 
             $payment = $createResponse->json();
@@ -189,10 +198,20 @@ class AdminRewardController extends Controller
             Log::info("A2U Direct Create: " . $createResponse->body());
 
             if (!$createResponse->successful()) {
+                $errorData = $createResponse->json();
+                $message = 'Gagal membuat pembayaran: ' . ($errorData['error_type'] ?? $createResponse->body());
+                $stuckId = null;
+
+                if (($errorData['error'] ?? '') === 'ongoing_payment_found') {
+                    $stuckId = $errorData['payment']['identifier'] ?? null;
+                    $message = 'Ada transaksi nyangkut (ID: ' . $stuckId . '). Silakan batalkan dulu.';
+                }
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal membuat pembayaran: ' . ($createResponse->json()['error_type'] ?? $createResponse->body()),
-                    'raw'     => $createResponse->json(),
+                    'message' => $message,
+                    'raw'     => $errorData,
+                    'stuck_payment_id' => $stuckId
                 ], 400);
             }
 
