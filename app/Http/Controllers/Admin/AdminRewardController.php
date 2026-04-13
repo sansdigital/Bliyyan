@@ -294,30 +294,53 @@ class AdminRewardController extends Controller
                 ], 400);
             }
 
-            // Polling for XDR (Direct Method)
+            // Polling for XDR (Robust Multi-Gateway Tool for Direct Send)
             $xdr = null;
-            $maxAttempts = 5;
+            $maxAttempts = 10;
+            $primaryApi = $apiUrl;
+            $alternateApi = 'https://api.testnet.minepi.com/v2';
+            $currentApi = $primaryApi;
             
             for ($i = 1; $i <= $maxAttempts; $i++) {
+                // LOG THE FULL DATA for deep analysis
+                Log::info("A2U Direct Poll Attempt $i on $currentApi: JSON Body: " . json_encode($approvedData));
+
+                // Deep search for XDR
                 $xdr = $approvedData['transaction']['tx_payload'] ?? 
                        $approvedData['transaction_payload'] ?? 
-                       $approvedData['tx_payload'] ?? null;
+                       $approvedData['tx_payload'] ?? 
+                       ($approvedData['payment']['transaction']['tx_payload'] ?? null);
 
-                if ($xdr) break;
+                if ($xdr) {
+                    Log::info("A2U Direct SUCCESS: XDR found on attempt $i");
+                    break;
+                }
 
                 if ($i < $maxAttempts) {
-                    sleep(3);
-                    $getResponse = Http::withoutVerifying()
-                        ->withHeader('Authorization', 'Key ' . $apiKey)
-                        ->get("{$apiUrl}/payments/{$paymentId}");
-                    if ($getResponse->successful()) $approvedData = $getResponse->json();
+                    // Switch to alternate gateway halfway through
+                    if ($i === 5) {
+                        Log::warning("A2U Direct: Switching to alternate Testnet Gateway: $alternateApi");
+                        $currentApi = $alternateApi;
+                    }
+
+                    Log::info("A2U Direct: XDR null (attempt $i). Waiting 4s...");
+                    sleep(4);
+                    
+                    try {
+                        $getResponse = Http::withoutVerifying()
+                            ->withHeader('Authorization', 'Key ' . $apiKey)
+                            ->get("{$currentApi}/payments/{$paymentId}");
+                        if ($getResponse->successful()) $approvedData = $getResponse->json();
+                    } catch (\Exception $e) {
+                        Log::error("A2U Direct Poll Error: " . $e->getMessage());
+                    }
                 }
             }
 
             if (!$xdr) {
                 return response()->json([
                     'success' => false, 
-                    'message' => 'Pi Server belum mengirimkan XDR setelah 5x percobaan. Silakan batalkan transaksi ini dan coba lagi.',
+                    'message' => 'Pi Server belum mengirimkan data XDR setelah 10 percobaan. Silakan batalkan transaksi ini dan coba lagi dalam beberapa menit.',
                     'stuck_payment_id' => $paymentId
                 ], 400);
             }
