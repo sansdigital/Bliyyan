@@ -48,6 +48,10 @@ class AdminOrderController extends Controller
                     return response()->json(['error' => 'Status pesanan tidak mendukung refund.'], 400);
                 }
 
+                if (!$order->user) {
+                    return response()->json(['error' => 'Data User untuk pesanan ini tidak ditemukan.'], 400);
+                }
+
                 $user = $order->user;
                 if (!$user->pi_uid) {
                     return response()->json(['error' => 'User tidak memiliki Pi UID.'], 400);
@@ -167,9 +171,9 @@ class AdminOrderController extends Controller
                 ]);
             });
 
-        } catch (\Exception $e) {
-            Log::error("Refund Final Error #{$order->id}: " . $e->getMessage());
-            return response()->json(['error' => 'Gagal refund: ' . $e->getMessage()], 500);
+        } catch (\Throwable $e) {
+            Log::error("Refund Final Error #{$order->id}: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
+            return response()->json(['error' => 'Gagal refund: ' . $e->getMessage() . " (Line " . $e->getLine() . ")"], 500);
         }
     }
 

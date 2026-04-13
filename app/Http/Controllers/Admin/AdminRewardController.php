@@ -176,9 +176,9 @@ class AdminRewardController extends Controller
             Log::info("A2U Reward SUCCESS: Payment {$paymentId} sent to {$user->name}");
             return back()->with('success', "Reward π{$request->amount} BERHASIL dikirim via Blockchain ke {$user->name}!");
 
-        } catch (\Exception $e) {
-            Log::error("A2U Reward Exception: " . $e->getMessage());
-            return back()->with('error', 'Server Error: ' . $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error("A2U Reward Exception: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
+            return back()->with('error', 'Server Error: ' . $e->getMessage() . " (Line " . $e->getLine() . ")");
         }
     }
 
@@ -315,9 +315,9 @@ class AdminRewardController extends Controller
                 'txid'       => $txid,
             ]);
 
-        } catch (\Exception $e) {
-            Log::error("A2U Direct Exception: " . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        } catch (\Throwable $e) {
+            Log::error("A2U Direct Exception: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
+            return response()->json(['success' => false, 'message' => $e->getMessage() . " (Line " . $e->getLine() . ")"], 500);
         }
     }
 
