@@ -121,9 +121,13 @@ class AdminRewardController extends Controller
             $maxAttempts = 5;
             
             for ($i = 1; $i <= $maxAttempts; $i++) {
+                // LOG THE FULL DATA for deep analysis
+                Log::info("A2U Poll Attempt $i Data: " . json_encode($approvedData));
+
                 $xdr = $approvedData['transaction']['tx_payload'] ?? 
                        $approvedData['transaction_payload'] ?? 
-                       $approvedData['tx_payload'] ?? null;
+                       $approvedData['tx_payload'] ?? 
+                       ($approvedData['payment']['transaction']['tx_payload'] ?? null);
 
                 if ($xdr) {
                     Log::info("A2U: XDR found on attempt $i");
@@ -131,8 +135,8 @@ class AdminRewardController extends Controller
                 }
 
                 if ($i < $maxAttempts) {
-                    Log::info("A2U: XDR null (attempt $i). Waiting 3s...");
-                    sleep(3);
+                    Log::info("A2U: XDR null (attempt $i). Waiting 4s...");
+                    sleep(4); // Slightly longer wait
                     $getResponse = Http::withoutVerifying()
                         ->withHeader('Authorization', 'Key ' . $apiKey)
                         ->get("{$apiUrl}/payments/{$paymentId}");
