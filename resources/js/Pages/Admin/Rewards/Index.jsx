@@ -24,6 +24,9 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
     const [uidMemo, setUidMemo] = useState('Reward dari Bliyyan Store');
     const [uidLoading, setUidLoading] = useState(false);
     const [uidResult, setUidResult] = useState(null);
+    const [diagLoading, setDiagLoading] = useState(false);
+    const [incompletePayments, setIncompletePayments] = useState([]);
+    const [cancellingId, setCancellingId] = useState(null);
 
     const { data, setData, post, processing, errors, reset } = useForm({
         user_id: '',
@@ -52,9 +55,39 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
             setUidResult({ success: true, message: res.data.message, payment_id: res.data.payment_id, txid: res.data.txid });
             router.reload({ only: ['rewardLog'] });
         } catch (err) {
-            setUidResult({ success: false, message: err.response?.data?.message || 'Terjadi kesalahan.' });
+            setUidResult({
+                success: false,
+                message: err.response?.data?.message || 'Terjadi kesalahan.',
+                payment_id: err.response?.data?.raw?.identifier // Catch ID even on error to allow cancel
+            });
         } finally {
             setUidLoading(false);
+        }
+    };
+
+    const fetchIncomplete = async () => {
+        setDiagLoading(true);
+        try {
+            const res = await axios.get(route('admin.rewards.check-incomplete'));
+            setIncompletePayments(res.data.data.payments || []);
+        } catch (err) {
+            alert('Gagal mengecek data: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setDiagLoading(false);
+        }
+    };
+
+    const handleCancelPayment = async (pid) => {
+        if (!confirm('Batalkan pembayaran ini?')) return;
+        setCancellingId(pid);
+        try {
+            const res = await axios.post(route('admin.rewards.cancel-stuck'), { payment_id: pid });
+            alert(res.data.message);
+            fetchIncomplete();
+        } catch (err) {
+            alert('Gagal membatalkan: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setCancellingId(null);
         }
     };
 
@@ -261,19 +294,34 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
                                     </div>
 
                                     {uidResult && (
-                                        <div className={`rounded-xl p-4 flex items-start gap-3 text-sm ${uidResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-                                            {uidResult.success
-                                                ? <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                                                : <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                                            }
-                                            <div>
-                                                <p className={`font-black text-xs ${uidResult.success ? 'text-green-700' : 'text-red-700'}`}>
-                                                    {uidResult.message}
-                                                </p>
-                                                {uidResult.payment_id && (
-                                                    <p className="text-[10px] text-green-600 font-mono mt-1">ID: {uidResult.payment_id}</p>
-                                                )}
+                                        <div className={`rounded-xl p-4 flex flex-col gap-3 text-sm ${uidResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                                            <div className="flex items-start gap-3">
+                                                {uidResult.success
+                                                    ? <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
+                                                    : <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                                                }
+                                                <div className="flex-1 min-w-0">
+                                                    <p className={`font-black text-xs ${uidResult.success ? 'text-green-700' : 'text-red-700'}`}>
+                                                        {uidResult.message}
+                                                    </p>
+                                                    {uidResult.payment_id && (
+                                                        <p className="text-[10px] text-gray-500 font-mono mt-1 select-all">ID: {uidResult.payment_id}</p>
+                                                    )}
+                                                </div>
                                             </div>
+
+                                            {!uidResult.success && uidResult.payment_id && (
+                                                <div className="pt-2 border-t border-red-100 flex items-center justify-between">
+                                                    <p className="text-[10px] text-red-600 font-bold uppercase italic">Pembayaran Nyangkut?</p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleCancelPayment(uidResult.payment_id)}
+                                                        className="px-3 py-1 bg-red-600 text-white text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+                                                    >
+                                                        {cancellingId === uidResult.payment_id ? 'Wait...' : 'Batalkan Sekarang'}
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
@@ -346,6 +394,54 @@ export default function RewardsIndex({ auth, users, rewardLog }) {
                             )}
                         </div>
                     </div>
+                </div>
+
+                {/* Diagnostic Section */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <div>
+                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-orange-500" />
+                                Diagnostic Tools
+                            </h3>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">Atasi transaksi yang nyangkut (stuck)</p>
+                        </div>
+                        <button
+                            onClick={fetchIncomplete}
+                            disabled={diagLoading}
+                            className="px-4 py-2 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-all flex items-center gap-2"
+                        >
+                            {diagLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Clock className="w-3 h-3" />}
+                            Cek Incomplete Payments
+                        </button>
+                    </div>
+
+                    {incompletePayments.length > 0 ? (
+                        <div className="space-y-3">
+                            {incompletePayments.map((p, idx) => (
+                                <div key={idx} className="flex items-center justify-between p-4 bg-orange-50 border border-orange-100 rounded-2xl">
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-black text-slate-800 truncate">ID: {p.identifier}</p>
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Amount: π{p.amount}</span>
+                                            <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest italic">Status: {p.status.developer_approved ? 'Approved' : 'Pending'}</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => handleCancelPayment(p.identifier)}
+                                        disabled={cancellingId === p.identifier}
+                                        className="px-4 py-2 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-600 transition-colors shadow-md"
+                                    >
+                                        {cancellingId === p.identifier ? 'Batal...' : 'Batalkan'}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : !diagLoading && (
+                        <p className="text-center py-8 text-xs font-bold text-gray-400 uppercase tracking-widest border-2 border-dashed border-gray-50 rounded-2xl">
+                            Belum ada transaksi nyangkut yang terdeteksi
+                        </p>
+                    )}
                 </div>
 
                 {/* Instructions */}
