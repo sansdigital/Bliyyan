@@ -64,11 +64,8 @@ class AdminRewardController extends Controller
                 ->post("{$apiUrl}/payments", [
                     'payment' => [
                         'amount'   => (float) $amountStr,
-                        'memo'     => (string) $request->memo,
-                        'metadata' => [
-                            'type'    => 'reward',
-                            'user_id' => (int) ($user->id ?? 0),
-                        ],
+                        'memo'     => "Bliyyan Reward", // Simplified memo
+                        'metadata' => ['id' => (string) ($user->id ?? 0)], // Extremely simple metadata
                         'uid' => (string) $piUid,
                     ],
                     'payment_type' => 'A2U',
@@ -116,16 +113,14 @@ class AdminRewardController extends Controller
                              ->with('stuck_payment_id', $paymentId);
             }
 
-            // Polling for XDR (Robust Multi-Gateway Tool)
+            // Polling for XDR (Ultra Patience Tool)
             $xdr = null;
-            $maxAttempts = 10;
-            $primaryApi = $apiUrl;
-            $alternateApi = 'https://api.testnet.minepi.com/v2';
-            $currentApi = $primaryApi;
+            $maxAttempts = 15; // Increased to 15 (approx 1.5 mins)
+            $currentApi = $apiUrl;
             
             for ($i = 1; $i <= $maxAttempts; $i++) {
                 // LOG THE FULL DATA for deep analysis
-                Log::info("A2U Poll Attempt $i on $currentApi: JSON Body: " . json_encode($approvedData));
+                Log::info("A2U Poll Attempt $i: JSON Body: " . json_encode($approvedData));
 
                 // Deep search for XDR
                 $xdr = $approvedData['transaction']['tx_payload'] ?? 
@@ -139,25 +134,14 @@ class AdminRewardController extends Controller
                 }
 
                 if ($i < $maxAttempts) {
-                    // Switch to alternate gateway halfway through if still null
-                    if ($i === 5) {
-                        Log::warning("A2U: Switching to alternate Testnet Gateway: $alternateApi");
-                        $currentApi = $alternateApi;
-                    }
-
-                    Log::info("A2U: XDR still null (attempt $i). Waiting 4s...");
-                    sleep(4); 
+                    Log::info("A2U: XDR null (attempt $i). Waiting 5s...");
+                    sleep(5); 
                     
                     try {
                         $getResponse = Http::withoutVerifying()
                             ->withHeader('Authorization', 'Key ' . $apiKey)
                             ->get("{$currentApi}/payments/{$paymentId}");
-                        
-                        if ($getResponse->successful()) {
-                            $approvedData = $getResponse->json();
-                        } else {
-                            Log::warning("A2U Poll GET failed on $currentApi: " . $getResponse->status());
-                        }
+                        if ($getResponse->successful()) $approvedData = $getResponse->json();
                     } catch (\Exception $e) {
                         Log::error("A2U Poll Exception: " . $e->getMessage());
                     }
@@ -166,7 +150,7 @@ class AdminRewardController extends Controller
 
             if (!$xdr) {
                 Log::error("A2U CRITICAL: TX Payload (XDR) tetap tidak ditemukan setelah {$maxAttempts} percobaan.");
-                return back()->with('error', 'Pi Server belum menghasilkan payload transaksi (XDR). Hal ini biasa terjadi jika ada sinkronisasi blockchain yang lambat. Silakan klik tombol Batalkan lalu coba lagi dalam beberapa menit agar server Pi bisa melakukan sinkronisasi ulang.')
+                return back()->with('error', 'Pi Server belum menghasilkan payload transaksi (XDR). Antrian blockchain sedang padat. Silakan tunggu 5-10 menit tanpa melakukan pengiriman ulang agar antrian bersih otomatis.')
                              ->with('stuck_payment_id', $paymentId);
             }
 
@@ -246,8 +230,8 @@ class AdminRewardController extends Controller
                 ->post("{$apiUrl}/payments", [
                     'payment' => [
                         'amount'   => (float) $amountStr,
-                        'memo'     => (string) $request->memo,
-                        'metadata' => ['type' => 'reward'],
+                        'memo'     => "Reward",
+                        'metadata' => ['reward_type' => 'manual'],
                         'uid'      => (string) $piUid,
                     ],
                     'payment_type' => 'A2U',
@@ -294,16 +278,14 @@ class AdminRewardController extends Controller
                 ], 400);
             }
 
-            // Polling for XDR (Robust Multi-Gateway Tool for Direct Send)
+            // Polling for XDR (Ultra Patience Tool for Direct Send)
             $xdr = null;
-            $maxAttempts = 10;
-            $primaryApi = $apiUrl;
-            $alternateApi = 'https://api.testnet.minepi.com/v2';
-            $currentApi = $primaryApi;
+            $maxAttempts = 15;
+            $currentApi = $apiUrl;
             
             for ($i = 1; $i <= $maxAttempts; $i++) {
                 // LOG THE FULL DATA for deep analysis
-                Log::info("A2U Direct Poll Attempt $i on $currentApi: JSON Body: " . json_encode($approvedData));
+                Log::info("A2U Direct Poll Attempt $i: JSON Body: " . json_encode($approvedData));
 
                 // Deep search for XDR
                 $xdr = $approvedData['transaction']['tx_payload'] ?? 
@@ -317,14 +299,8 @@ class AdminRewardController extends Controller
                 }
 
                 if ($i < $maxAttempts) {
-                    // Switch to alternate gateway halfway through
-                    if ($i === 5) {
-                        Log::warning("A2U Direct: Switching to alternate Testnet Gateway: $alternateApi");
-                        $currentApi = $alternateApi;
-                    }
-
-                    Log::info("A2U Direct: XDR null (attempt $i). Waiting 4s...");
-                    sleep(4);
+                    Log::info("A2U Direct: XDR null (attempt $i). Waiting 5s...");
+                    sleep(5);
                     
                     try {
                         $getResponse = Http::withoutVerifying()
@@ -340,7 +316,7 @@ class AdminRewardController extends Controller
             if (!$xdr) {
                 return response()->json([
                     'success' => false, 
-                    'message' => 'Pi Server belum mengirimkan data XDR setelah 10 percobaan. Silakan batalkan transaksi ini dan coba lagi dalam beberapa menit.',
+                    'message' => 'Pi Server belum menghasilkan XDR setelah 15x percobaan. Silakan tunggu 5 menit lalu coba lagi.',
                     'stuck_payment_id' => $paymentId
                 ], 400);
             }
