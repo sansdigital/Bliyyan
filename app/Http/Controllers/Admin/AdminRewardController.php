@@ -378,7 +378,11 @@ class AdminRewardController extends Controller
             
             try {
                 $horizonUrl = "{$workingNode}/accounts/{$walletAddress}";
-                $horizonRes = Http::withoutVerifying()->timeout(5)->get($horizonUrl);
+                // Increase timeout for real balance fetch to 10s
+                $horizonRes = Http::withoutVerifying()
+                    ->withHeaders(['User-Agent' => 'PiNetwork-A2U-Diagnostic/1.0'])
+                    ->timeout(10)
+                    ->get($horizonUrl);
                 if ($horizonRes->successful()) {
                     $balances = $horizonRes->json()['balances'] ?? [];
                     foreach ($balances as $b) {
@@ -413,19 +417,29 @@ class AdminRewardController extends Controller
             'https://horizon-testnet.pi2.network',
             'https://api.testnet.minepi.com/horizon',
             'https://testnet-horizon.pi.network',
+            'https://horizon.testnet.pi2.network',
+            'https://api.minepi.com/horizon',
         ];
 
         foreach ($nodes as $node) {
             try {
-                $response = Http::withoutVerifying()->timeout(2)->get($node);
-                if ($response->successful() || $response->status() === 404) { // 404 is still a valid response from a live node
+                // Increase timeout to 5s for the probe
+                $response = Http::withoutVerifying()
+                    ->withHeaders(['User-Agent' => 'PiNetwork-A2U-Diagnostic/1.0'])
+                    ->timeout(5)
+                    ->get($node);
+                
+                if ($response->successful() || $response->status() === 404) {
+                    Log::info("A2U: Found working node: $node");
                     return $node;
                 }
             } catch (\Exception $e) {
+                Log::debug("A2U: Node $node probe failed: " . $e->getMessage());
                 continue;
             }
         }
 
-        return $nodes[0]; // Fallback to primary
+        Log::error("A2U: ALL blockchain nodes failed. Defaulting to primary.");
+        return $nodes[0]; 
     }
 }
