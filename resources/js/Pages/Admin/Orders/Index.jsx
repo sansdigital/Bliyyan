@@ -137,7 +137,7 @@ export default function Index({ auth, orders }) {
                     const sourceAccount = await server.loadAccount(keypair.publicKey());
                     
                     const transaction = new StellarSdk.TransactionBuilder(sourceAccount, {
-                        fee: '1000', // Standard fee usually 100 on Stellar, 1000 on Pi to be safe 
+                        fee: '1000000', // Pi Network has a higher base fee (typically 10000 or 100000 stroops). Set max willingness to 1M stroops (0.1 Pi) to be safe.
                         networkPassphrase: 'Pi Testnet',
                     })
                     .addOperation(StellarSdk.Operation.payment({
