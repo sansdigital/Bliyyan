@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
+            'check_address' => \App\Http\Middleware\EnsureAddressIsFilled::class,
         ]);
 
         $middleware->validateCsrfTokens(except: [
