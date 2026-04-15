@@ -41,7 +41,8 @@ export default function Index({ auth, orders }) {
     const [updatingId, setUpdatingId] = useState(null);
     const [localOrders, setLocalOrders] = useState(orders);
     const [viewDetailsModal, setViewDetailsModal] = useState(null);
-    const [trackingModal, setTrackingModal] = useState(null);
+    const [statusModal, setStatusModal] = useState(null);
+    const [selectedStatus, setSelectedStatus] = useState('');
     const [filterDay, setFilterDay] = useState('all');
     const [filterMonth, setFilterMonth] = useState('all');
     const [filterYear, setFilterYear] = useState('all');
@@ -84,7 +85,7 @@ export default function Index({ auth, orders }) {
             toast.error('Failed to update order.');
         } finally {
             setUpdatingId(null);
-            setTrackingModal(null);
+            setStatusModal(null);
         }
     };
 
@@ -661,9 +662,8 @@ export default function Index({ auth, orders }) {
                                                     <button 
                                                         className="p-1.5 text-blue-400 hover:bg-blue-50 rounded-lg transition-colors"
                                                         onClick={() => {
-                                                            // For status management
-                                                            if (order.status === 'shipped') setTrackingModal(order);
-                                                            else toast.info('Status management in progress.');
+                                                            setSelectedStatus(order.status);
+                                                            setStatusModal(order);
                                                         }}
                                                     >
                                                         <Pencil className="w-3.5 h-3.5" />
@@ -846,29 +846,69 @@ export default function Index({ auth, orders }) {
                 </AdminModal>
             )}
 
-            {/* Tracking / Status Modal (reused from old code) */}
-            {trackingModal && (
+            {/* Order Status Management Modal */}
+            {statusModal && (
                 <AdminModal
-                    isOpen={!!trackingModal}
-                    onClose={() => setTrackingModal(null)}
-                    title="Shipping Update"
+                    isOpen={!!statusModal}
+                    onClose={() => setStatusModal(null)}
+                    title="Manage Order Status"
+                    subtitle={`Order #${String(statusModal.id).padStart(4, '0')} - ${statusModal.user?.name}`}
                     size="md"
                 >
                     <form onSubmit={(e) => {
                         e.preventDefault();
                         const formData = new FormData(e.target);
-                        handleStatusUpdate(trackingModal.id, 'shipped', formData.get('tracking_number'), formData.get('shipping_courier'));
-                    }} className="p-2 space-y-4">
+                        handleStatusUpdate(statusModal.id, selectedStatus, formData.get('tracking_number'), formData.get('shipping_courier'));
+                    }} className="p-4 space-y-6">
+                        
                         <div>
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Courier</label>
-                            <input name="shipping_courier" defaultValue={trackingModal.shipping_courier || 'J&T Express'} className="w-full rounded-xl border-gray-200 text-sm" required />
+                            <label className="text-[10px] font-black text-slate-800 uppercase tracking-widest mb-2 block">Set New Status</label>
+                            <select 
+                                value={selectedStatus} 
+                                onChange={(e) => setSelectedStatus(e.target.value)}
+                                className="w-full bg-slate-50 border-gray-200 rounded-xl text-sm font-bold text-slate-700 shadow-sm transition-all focus:border-shopee-gold focus:ring focus:ring-shopee-gold/20 py-3"
+                            >
+                                <option value="pending">Pending</option>
+                                <option value="paid">Paid (Telah Dibayar)</option>
+                                <option value="processing">Processing (Sedang Dikemas)</option>
+                                <option value="shipped">Shipped (Dikirim)</option>
+                                <option value="completed">Completed (Selesai)</option>
+                                <option value="cancelled">Cancelled (Dibatalkan)</option>
+                                <option value="refunded">Refunded</option>
+                            </select>
                         </div>
-                        <div>
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Tracking Number</label>
-                            <input name="tracking_number" defaultValue={trackingModal.tracking_number} className="w-full rounded-xl border-gray-200 text-sm" required />
-                        </div>
-                        <button type="submit" className="w-full py-3 bg-shopee-gold text-slate-900 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-shopee-gold/20 transition-all">
-                            Update Shipping Detail
+
+                        {selectedStatus === 'shipped' && (
+                            <div className="pt-4 border-t border-dashed border-gray-200 space-y-4 animate-fade-in">
+                                <div>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Courier Name</label>
+                                    <input 
+                                        name="shipping_courier" 
+                                        defaultValue={statusModal.shipping_courier || 'J&T Express'} 
+                                        className="w-full bg-slate-50 border-gray-200 rounded-xl text-sm font-medium focus:ring-shopee-gold" 
+                                        placeholder="E.g., JNE, J&T, Sicepat" 
+                                        required 
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Tracking Number / Resi</label>
+                                    <input 
+                                        name="tracking_number" 
+                                        defaultValue={statusModal.tracking_number} 
+                                        className="w-full bg-slate-50 border-gray-200 rounded-xl text-sm font-medium uppercase focus:ring-shopee-gold" 
+                                        placeholder="Enter tracking code" 
+                                        required 
+                                    />
+                                </div>
+                            </div>
+                        )}
+
+                        <button 
+                            type="submit" 
+                            disabled={updatingId === statusModal.id}
+                            className="w-full mt-4 py-3 bg-slate-900 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-black/10 hover:bg-black transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            {updatingId === statusModal.id ? 'Saving...' : 'Save Changes'}
                         </button>
                     </form>
                 </AdminModal>
