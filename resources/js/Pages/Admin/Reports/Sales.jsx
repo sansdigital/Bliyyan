@@ -137,13 +137,30 @@ export default function Sales({ auth, orders }) {
     }, [localOrders, searchQuery, filterDay, filterMonth, filterYear]);
 
     const handleExportExcel = () => {
-        const exportData = filteredOrders.map(o => ({
-            'Order Id': `#${String(o.id).padStart(4, '0')}`,
-            'Billing Name': o.user?.name || 'Guest',
-            'Date': new Date(o.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
-            'Address': o.shipping_address || '-',
-            'Total Amount': `π ${Number(o.total_price)}`
-        }));
+        const exportData = filteredOrders.map(o => {
+            // Extract phone and clean address from "Name (Phone)\nAddress" format
+            const rawAddress = o.shipping_address || '';
+            const addressParts = rawAddress.split('\n');
+            const firstLine = addressParts[0] || '';
+            const phoneMatch = firstLine.match(/\(([^)]+)\)/);
+            const phone = phoneMatch ? phoneMatch[1] : '-';
+            const cleanAddress = (phoneMatch && addressParts.length > 1) 
+                ? addressParts.slice(1).join(', ').trim() 
+                : rawAddress;
+            
+            const dateObj = new Date(o.created_at);
+
+            return {
+                'Order ID': `#${String(o.id).padStart(4, '0')}`,
+                'Username': o.user?.pi_uid ? o.user.pi_uid.replace('@pi.network', '') : '-',
+                'Nama': o.user?.name || 'Guest',
+                'No HP': phone,
+                'Date': dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+                'Time': dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+                'Alamat': cleanAddress,
+                'Jumlah Pi': Number(o.total_price)
+            };
+        });
 
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
