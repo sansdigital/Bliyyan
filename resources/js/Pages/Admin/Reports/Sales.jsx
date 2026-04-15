@@ -151,7 +151,7 @@ export default function Sales({ auth, orders }) {
             const dateObj = new Date(o.created_at);
             const dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
             const timeStr = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            const username = o.user?.pi_uid ? o.user.pi_uid.replace('@pi.network', '') : (o.user?.name || '-');
+            const username = o.user?.name || '-';
 
             const items = o.items || [];
             if (items.length === 0) {
