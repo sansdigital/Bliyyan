@@ -5,13 +5,15 @@ import { useToast } from '@/Components/Toast';
 import { 
     Search,
     Trash2,
-    Members,
     ChevronLeft,
     ChevronRight,
     Users,
     Download,
     Mail,
-    Calendar
+    Calendar,
+    Phone,
+    MapPin,
+    Wallet
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
@@ -38,18 +40,26 @@ export default function Index({ auth, users }) {
     };
 
     const handleExportExcel = () => {
-        const exportData = filteredUsers.map(u => ({
-            'User Id': `#${String(u.id).padStart(4, '0')}`,
-            'Full Name': u.name || 'Unknown',
-            'Pi UID': u.pi_uid || '-',
-            'Email Address': u.email || '-',
-            'Total Orders': u.orders_count || 0,
-            'Joined Date': new Date(u.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-        }));
+        const exportData = filteredUsers.map(u => {
+            const addr = u.default_address;
+            const fullAddress = addr ? [addr.address_line_1, addr.city, addr.province, addr.postal_code].filter(Boolean).join(', ') : '-';
+            
+            return {
+                'User ID': `#${String(u.id).padStart(4, '0')}`,
+                'Username': u.name || '-',
+                'Name': addr?.recipient_name || '-',
+                'No Telp': addr?.phone_number || '-',
+                'Pi UID': u.pi_uid || '-',
+                'Email': addr?.email || '-',
+                'Alamat': fullAddress,
+                'Total Orders': u.orders_count || 0,
+                'Join Date': new Date(u.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+            };
+        });
 
         const ws = XLSX.utils.json_to_sheet(exportData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Customers");
+        XLSX.utils.book_append_sheet(wb, ws, "Bliyyan_Customers");
         
         const maxWidths = exportData.reduce((acc, row) => {
             Object.keys(row).forEach((key, i) => {
@@ -69,11 +79,17 @@ export default function Index({ auth, users }) {
 
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
-            result = result.filter(u => 
-                String(u.id).includes(query) || 
-                (u.name && u.name.toLowerCase().includes(query)) ||
-                (u.pi_uid && u.pi_uid.toLowerCase().includes(query))
-            );
+            result = result.filter(u => {
+                const addr = u.default_address;
+                return (
+                    String(u.id).includes(query) || 
+                    (u.name && u.name.toLowerCase().includes(query)) ||
+                    (u.pi_uid && u.pi_uid.toLowerCase().includes(query)) ||
+                    (addr?.recipient_name && addr.recipient_name.toLowerCase().includes(query)) ||
+                    (addr?.phone_number && addr.phone_number.includes(query)) ||
+                    (addr?.email && addr.email.toLowerCase().includes(query))
+                );
+            });
         }
         return result;
     }, [localUsers, searchQuery]);
@@ -111,7 +127,7 @@ export default function Index({ auth, users }) {
                     </div>
                     <input 
                         type="text" 
-                        placeholder="Search by Name, UID, or ID..."
+                        placeholder="Search customers..."
                         value={searchQuery}
                         onChange={(e) => {
                             setSearchQuery(e.target.value);
@@ -131,75 +147,99 @@ export default function Index({ auth, users }) {
             {/* Table Area */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left table-auto">
                         <thead>
                             <tr className="border-b border-gray-50 text-[10px] font-black text-gray-400 uppercase tracking-widest bg-slate-50/50">
-                                <th className="px-6 py-4">Cust ID</th>
-                                <th className="px-6 py-4">Customer Details</th>
-                                <th className="px-6 py-4">Pi Account UID</th>
-                                <th className="px-6 py-4 text-center">Total Orders</th>
-                                <th className="px-6 py-4">Joined Date</th>
-                                <th className="px-6 py-4 text-right">Action</th>
+                                <th className="px-6 py-4 whitespace-nowrap">User ID</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Username</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Name</th>
+                                <th className="px-6 py-4 whitespace-nowrap">No Telp</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Pi UID</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Email</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Alamat</th>
+                                <th className="px-6 py-4 text-center whitespace-nowrap">Total Orders</th>
+                                <th className="px-6 py-4 whitespace-nowrap">Join Date</th>
+                                <th className="px-6 py-4 text-right whitespace-nowrap">Action</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {paginatedUsers.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="py-20 text-center">
+                                    <td colSpan={10} className="py-20 text-center">
                                         <Users className="w-12 h-12 text-gray-200 mx-auto mb-4" />
                                         <p className="text-xs font-black text-gray-300 uppercase tracking-widest">No customers found</p>
                                     </td>
                                 </tr>
                             ) : (
-                                paginatedUsers.map((user) => (
-                                    <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <span className="text-xs font-black text-slate-800">#{String(user.id).padStart(4, '0')}</span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-shopee-gold/10 flex items-center justify-center text-shopee-gold font-black shadow-inner">
-                                                    {(user.name || 'G')[0].toUpperCase()}
+                                paginatedUsers.map((user) => {
+                                    const addr = user.default_address;
+                                    return (
+                                        <tr key={user.id} className="hover:bg-slate-50/50 transition-colors group">
+                                            <td className="px-6 py-4">
+                                                <span className="text-xs font-black text-slate-800">#{String(user.id).padStart(4, '0')}</span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-7 h-7 rounded-lg bg-shopee-gold/10 flex items-center justify-center text-shopee-gold font-black text-[10px]">
+                                                        {(user.name || 'G')[0].toUpperCase()}
+                                                    </div>
+                                                    <span className="text-xs font-bold text-slate-700">{user.name || 'Guest'}</span>
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-slate-800 leading-tight flex items-center gap-2">
-                                                        {user.name || 'Guest User'}
-                                                        {user.role === 'admin' && <span className="text-[8px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded uppercase tracking-widest">Admin</span>}
+                                            </td>
+                                            <td className="px-6 py-4 text-xs font-bold text-slate-800">
+                                                {addr?.recipient_name || '-'}
+                                            </td>
+                                            <td className="px-6 py-4 text-[11px] font-bold text-gray-500 whitespace-nowrap">
+                                                {addr?.phone_number ? (
+                                                    <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {addr.phone_number}</span>
+                                                ) : '-'}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-1 bg-slate-100 px-2 py-1 rounded w-fit">
+                                                    <Wallet className="w-3 h-3 text-slate-400" />
+                                                    <code className="text-[9px] font-black text-slate-600 truncate max-w-[100px] block" title={user.pi_uid}>
+                                                        {user.pi_uid ? user.pi_uid.substring(0, 10) + '...' : 'Guest'}
+                                                    </code>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-[11px] font-bold text-gray-500">
+                                                {addr?.email ? (
+                                                    <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {addr.email}</span>
+                                                ) : '-'}
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-start gap-1 max-w-[180px]">
+                                                    <MapPin className="w-3 h-3 text-slate-300 mt-0.5 shrink-0" />
+                                                    <span className="text-[10px] font-bold text-gray-500 leading-tight line-clamp-2">
+                                                        {addr ? [addr.address_line_1, addr.city, addr.province].filter(Boolean).join(', ') : '-'}
                                                     </span>
-                                                    <span className="text-[10px] text-gray-400 font-bold mt-0.5 flex items-center gap-1"><Mail className="w-3 h-3" /> {user.email || 'No email attached'}</span>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <code className="text-[10px] font-black text-slate-600 bg-slate-100 px-2 py-1 rounded truncate max-w-[200px] block">
-                                                {user.pi_uid ? user.pi_uid.replace('@pi.network', '') : 'Not a Pi Wallet'}
-                                            </code>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-blue-50 text-blue-600 font-black text-xs">
-                                                {user.orders_count || 0}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-tighter flex items-center gap-1.5">
-                                                <Calendar className="w-3.5 h-3.5" />
-                                                {new Date(user.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex justify-end gap-2 pr-1 transition-opacity">
-                                                <button 
-                                                    onClick={() => handleDelete(user.id)}
-                                                    disabled={user.role === 'admin'}
-                                                    className="p-1.5 text-red-500 hover:bg-red-50 disabled:opacity-20 disabled:hover:bg-transparent rounded-lg transition-colors group/del"
-                                                    title={user.role === 'admin' ? "Cannot delete admin" : "Delete Customer"}
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-50 text-blue-600 font-black text-[10px]">
+                                                    {user.orders_count || 0}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter flex items-center gap-1">
+                                                    <Calendar className="w-3 h-3" />
+                                                    {new Date(user.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex justify-end pr-1">
+                                                    <button 
+                                                        onClick={() => handleDelete(user.id)}
+                                                        disabled={user.role === 'admin'}
+                                                        className="p-1.5 text-red-500 hover:bg-red-50 disabled:opacity-20 rounded-lg transition-colors"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>

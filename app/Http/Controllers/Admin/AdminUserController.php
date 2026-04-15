@@ -12,8 +12,16 @@ class AdminUserController extends Controller
     public function index(Request $request)
     {
         $users = User::withCount('orders')
+            ->with(['addresses' => function($q) {
+                $q->where('is_default', true);
+            }])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function($user) {
+                $user->default_address = $user->addresses->first();
+                unset($user->addresses); // Clean up the collection to avoid confusion
+                return $user;
+            });
 
         return Inertia::render('Admin/Users/Index', [
             'users' => $users
