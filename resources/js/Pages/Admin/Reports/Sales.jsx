@@ -137,36 +137,71 @@ export default function Sales({ auth, orders }) {
     }, [localOrders, searchQuery, filterDay, filterMonth, filterYear]);
 
     const handleExportExcel = () => {
-        const exportData = filteredOrders.map(o => {
-            // Extract phone and clean address from "Name (Phone)\nAddress" format
-            const rawAddress = o.shipping_address || '';
-            const addressParts = rawAddress.split('\n');
-            const firstLine = addressParts[0] || '';
-            const phoneMatch = firstLine.match(/\(([^)]+)\)/);
-            const phone = phoneMatch ? phoneMatch[1] : '-';
-            const cleanAddress = (phoneMatch && addressParts.length > 1) 
-                ? addressParts.slice(1).join(', ').trim() 
-                : rawAddress;
-            
-            const dateObj = new Date(o.created_at);
+        const rows = [];
+        let grandTotal = 0;
 
-            return {
-                'Order ID': `#${String(o.id).padStart(4, '0')}`,
-                'Username': o.user?.pi_uid ? o.user.pi_uid.replace('@pi.network', '') : '-',
-                'Nama': o.user?.name || 'Guest',
-                'No HP': phone,
-                'Date': dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-                'Time': dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-                'Alamat': cleanAddress,
-                'Jumlah Pi': Number(o.total_price)
-            };
+        filteredOrders.forEach(o => {
+            const addr = o.default_address || null;
+            const fullName  = addr?.recipient_name || o.user?.name || 'Guest';
+            const email     = addr?.email || '-';
+            const phone     = addr?.phone_number || '-';
+            const cleanAddr = [addr?.address_line_1, addr?.city, addr?.province, addr?.postal_code]
+                .filter(Boolean).join(', ') || o.shipping_address || '-';
+
+            const dateObj = new Date(o.created_at);
+            const dateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timeStr = dateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const username = o.user?.pi_uid ? o.user.pi_uid.replace('@pi.network', '') : (o.user?.name || '-');
+
+            const items = o.items || [];
+            if (items.length === 0) {
+                rows.push({
+                    'Order ID':  `#${String(o.id).padStart(4, '0')}`,
+                    'Username':  username,
+                    'Nama':      fullName,
+                    'Email':     email,
+                    'No HP':     phone,
+                    'Date':      dateStr,
+                    'Time':      timeStr,
+                    'Alamat':    cleanAddr,
+                    'Produk':    '-',
+                    'Qty':       '-',
+                    'Jumlah Pi': Number(o.total_price),
+                });
+                grandTotal += Number(o.total_price);
+            } else {
+                items.forEach((item, idx) => {
+                    rows.push({
+                        'Order ID':  idx === 0 ? `#${String(o.id).padStart(4, '0')}` : '',
+                        'Username':  idx === 0 ? username : '',
+                        'Nama':      idx === 0 ? fullName : '',
+                        'Email':     idx === 0 ? email : '',
+                        'No HP':     idx === 0 ? phone : '',
+                        'Date':      idx === 0 ? dateStr : '',
+                        'Time':      idx === 0 ? timeStr : '',
+                        'Alamat':    idx === 0 ? cleanAddr : '',
+                        'Produk':    item.product?.name || '-',
+                        'Qty':       item.quantity,
+                        'Jumlah Pi': idx === 0 ? Number(o.total_price) : '',
+                    });
+                });
+                grandTotal += Number(o.total_price);
+            }
         });
 
-        const ws = XLSX.utils.json_to_sheet(exportData);
+        // Total row
+        rows.push({
+            'Order ID': '', 'Username': '', 'Nama': '', 'Email': '',
+            'No HP': '', 'Date': '', 'Time': '', 'Alamat': '',
+            'Produk': '', 'Qty': 'TOTAL PI',
+            'Jumlah Pi': grandTotal,
+        });
+
+        const ws = XLSX.utils.json_to_sheet(rows);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Sales Report");
-        
-        const maxWidths = exportData.reduce((acc, row) => {
+        XLSX.utils.book_append_sheet(wb, ws, 'Sales Report');
+
+        const maxWidths = rows.reduce((acc, row) => {
             Object.keys(row).forEach((key, i) => {
                 const val = String(row[key]);
                 acc[i] = Math.max(acc[i] || 0, val.length, key.length);
@@ -176,6 +211,7 @@ export default function Sales({ auth, orders }) {
         ws['!cols'] = maxWidths.map(w => ({ wch: w + 2 }));
 
         XLSX.writeFile(wb, `Bliyyan_SalesReport_${new Date().toISOString().split('T')[0]}.xlsx`);
+        toast.success('Excel exported successfully!');
     };
 
     const totalRevenue = filteredOrders.reduce((sum, o) => sum + Number(o.total_price), 0);

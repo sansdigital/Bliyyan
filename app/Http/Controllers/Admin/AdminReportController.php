@@ -74,10 +74,19 @@ class AdminReportController extends Controller
 
     public function sales()
     {
-        $orders = Order::with(['user', 'items.product'])
+        $orders = Order::with([
+                'user', 
+                'user.addresses' => fn($q) => $q->where('is_default', true)->limit(1),
+                'items.product'
+            ])
             ->where('status', 'paid')
             ->latest()
-            ->get();
+            ->get()
+            ->map(function ($order) {
+                $order->default_address = $order->user->addresses->first();
+                unset($order->user->addresses);
+                return $order;
+            });
 
         return Inertia::render('Admin/Reports/Sales', [
             'orders' => $orders
