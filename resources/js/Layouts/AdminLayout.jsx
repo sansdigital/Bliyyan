@@ -54,6 +54,7 @@ const navSections = [
     {
         section: 'General',
         items: [
+            { label: 'Customers', icon: 'user', route: 'admin.users.index', match: 'admin.users.*' },
             { label: 'Go to Website', icon: 'website',   href: '/' },
         ]
     }

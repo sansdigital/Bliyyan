@@ -96,6 +96,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/sales', [\App\Http\Controllers\Admin\AdminReportController::class, 'sales'])->name('admin.reports.sales');
         Route::resource('vouchers', \App\Http\Controllers\Admin\AdminVoucherController::class)->names('admin.vouchers');
         Route::delete('/products/image/{image}', [\App\Http\Controllers\Admin\AdminProductController::class, 'deleteImage'])->name('admin.products.image.delete');
+        
+        // User/Customer Management
+        Route::get('/users', [\App\Http\Controllers\Admin\AdminUserController::class, 'index'])->name('admin.users.index');
+        Route::delete('/users/{user}', [\App\Http\Controllers\Admin\AdminUserController::class, 'destroy'])->name('admin.users.destroy');
     });
 });
 
