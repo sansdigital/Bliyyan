@@ -1,8 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, usePage } from '@inertiajs/react';
-import DeleteUserForm from './Partials/DeleteUserForm';
-import UpdatePasswordForm from './Partials/UpdatePasswordForm';
-import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import ManageAddressesForm from './Partials/ManageAddressesForm';
 
 export default function Edit({ mustVerifyEmail, status, addresses }) {
@@ -56,27 +53,7 @@ export default function Edit({ mustVerifyEmail, status, addresses }) {
                     <ManageAddressesForm addresses={addresses} />
                 </div>
 
-                {/* Update Name & Email */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Account Information</h3>
-                    <UpdateProfileInformationForm
-                        mustVerifyEmail={mustVerifyEmail}
-                        status={status}
-                        className="max-w-xl"
-                    />
-                </div>
 
-                {/* Update Password */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-4">
-                    <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Update Password</h3>
-                    <UpdatePasswordForm className="max-w-xl" />
-                </div>
-
-                {/* Danger Zone */}
-                <div className="bg-white rounded-2xl shadow-sm border border-red-100 p-6">
-                    <h3 className="text-xs font-black text-red-400 uppercase tracking-widest mb-4">Danger Zone</h3>
-                    <DeleteUserForm className="max-w-xl" />
-                </div>
             </div>
         </AuthenticatedLayout>
     );
