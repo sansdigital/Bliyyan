@@ -163,45 +163,49 @@ export default function Dashboard({ auth, stats, order_trends, recent_orders, lo
                         </div>
                     </div>
 
-                    {/* Sales Comparison Card */}
-                    <div className="lg:col-span-1 bg-slate-900 rounded-2xl shadow-xl p-6 relative overflow-hidden flex flex-col justify-between">
+                    {/* Pi Wallet Balance Card (Replaced Sales Performance) */}
+                    <div className="lg:col-span-1 bg-slate-900 rounded-2xl shadow-xl p-6 relative overflow-hidden flex flex-col justify-between group">
                         <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-6">
-                                <div className="h-8 w-8 bg-shopee-gold rounded-xl flex items-center justify-center">
-                                    <Coins className="w-4 h-4 text-slate-900" />
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-8 w-8 bg-shopee-gold rounded-xl flex items-center justify-center shadow-lg shadow-shopee-gold/20">
+                                        <Coins className="w-4 h-4 text-slate-900" />
+                                    </div>
+                                    <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Saldo Pi Aplikasi</h3>
                                 </div>
-                                <h3 className="text-xs font-black text-white uppercase tracking-widest">Sales Performance</h3>
+                                <div className="px-2 py-1 bg-white/5 rounded-lg border border-white/10">
+                                    <span className="text-[8px] font-black text-shopee-gold uppercase tracking-tighter">Live Blockchain</span>
+                                </div>
                             </div>
 
-                            <div className="space-y-6">
+                            <div className="space-y-8">
                                 <div>
-                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Today's Sales</p>
-                                    <div className="flex items-end gap-2">
-                                        <h2 className="text-3xl font-black text-shopee-gold tracking-tighter">π {Number(stats.today_sales)}</h2>
-                                        {isSalesUp && <ArrowUpRight className="w-5 h-5 text-green-400 mb-1" />}
+                                    <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Current Balance</p>
+                                    <div className="flex items-baseline gap-2">
+                                        <h2 className="text-4xl font-black text-white tracking-tighter group-hover:scale-105 transition-transform origin-left">
+                                            π {Number(stats.wallet_balance).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 7 })}
+                                        </h2>
                                     </div>
                                 </div>
 
-                                <div className="p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">Yesterday</span>
-                                        <span className="text-xs font-bold text-white/80 tracking-tighter">π {Number(stats.yesterday_sales)}</span>
+                                <div className="p-4 bg-white/5 rounded-xl border border-white/10 backdrop-blur-sm group-hover:bg-white/10 transition-colors">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <span className="text-[8px] font-black text-white/30 uppercase tracking-widest">Public Address</span>
+                                        <span className="text-[10px] font-mono text-shopee-gold font-bold">{stats.wallet_address || 'Not Configured'}</span>
                                     </div>
-                                    <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                                        <div
-                                            className="h-full bg-shopee-gold transition-all duration-1000"
-                                            style={{ width: `${Math.min((stats.today_sales / (stats.yesterday_sales || 1)) * 100, 100)}%` }}
-                                        />
+                                    <div className="w-full bg-white/10 h-1 rounded-full overflow-hidden mt-2">
+                                        <div className="h-full bg-shopee-gold/50 w-full animate-pulse" />
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Visual decor from SansLaundry style */}
-                        <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-shopee-gold/10 rounded-full blur-2xl" />
+                        {/* Visual decor */}
+                        <div className="absolute -right-8 -top-8 w-32 h-32 bg-shopee-gold/5 rounded-full blur-3xl group-hover:bg-shopee-gold/10 transition-colors" />
+                        <div className="absolute -left-8 -bottom-8 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl" />
 
-                        <Link href={route('admin.reports.index')} className="relative z-10 w-full py-3 bg-shopee-gold text-slate-900 rounded-xl font-black text-[10px] uppercase tracking-widest text-center mt-6 hover:bg-yellow-500 transition-colors">
-                            View Detailed Reports
+                        <Link href={route('admin.reports.sales')} className="relative z-10 w-full py-3 bg-shopee-gold text-slate-900 rounded-xl font-black text-[10px] uppercase tracking-widest text-center mt-6 hover:bg-yellow-500 transition-all hover:shadow-lg hover:shadow-shopee-gold/20 active:scale-95">
+                            Lihat Laporan Penjualan
                         </Link>
                     </div>
                 </div>
