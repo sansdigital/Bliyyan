@@ -384,7 +384,7 @@ export default function Sales({ auth, orders }) {
                                     <div key={i} className="p-4 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden border border-gray-200">
-                                                <img src={item.product?.image || '/images/placeholder.png'} className="w-full h-full object-cover" alt="" />
+                                                <img src={item.product?.image ? (item.product.image.startsWith('http') ? item.product.image : `/storage/${item.product.image}`) : '/images/placeholder.png'} className="w-full h-full object-cover" alt="" />
                                             </div>
                                             <div>
                                                 <h4 className="text-xs font-black text-slate-800 truncate max-w-[180px]">{item.product?.name}</h4>
