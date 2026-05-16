@@ -18,7 +18,7 @@ $resIncomplete = Illuminate\Support\Facades\Http::withoutVerifying()
 echo "Incomplete Response: " . $resIncomplete->body() . "\n\n";
 
 echo "Checking Horizon Balance for $walletAddress...\n";
-$horizonUrl = "https://horizon-testnet.pi2.network/accounts/$walletAddress";
+$horizonUrl = "https://api.mainnet.minepi.com/accounts/$walletAddress";
 $resHorizon = Illuminate\Support\Facades\Http::withoutVerifying()->get($horizonUrl);
 
 if ($resHorizon->successful()) {

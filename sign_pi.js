@@ -12,7 +12,7 @@ const mode = process.argv[2];
 if (mode === 'sign') {
     const seed = process.argv[3];
     const xdr = process.argv[4];
-    const horizonUrl = process.argv[5] || 'https://api.testnet.minepi.com';
+    const horizonUrl = process.argv[5] || 'https://api.mainnet.minepi.com';
 
     if (!seed || !xdr) {
         console.log(JSON.stringify({ success: false, error: 'Missing seed or XDR' }));
@@ -23,7 +23,7 @@ if (mode === 'sign') {
         try {
             const server = new StellarSdk.Server(horizonUrl, { allowHttp: true });
             const keypair = StellarSdk.Keypair.fromSecret(seed);
-            const transaction = new StellarSdk.Transaction(xdr, 'Pi Testnet');
+            const transaction = new StellarSdk.Transaction(xdr, 'Pi Network');
             
             transaction.sign(keypair);
             const result = await server.submitTransaction(transaction);
@@ -38,7 +38,7 @@ else if (mode === 'build') {
     const destination = process.argv[4];
     const amount = process.argv[5];
     const memoText = process.argv[6];
-    const horizonUrl = process.argv[7] || 'https://api.testnet.minepi.com';
+    const horizonUrl = process.argv[7] || 'https://api.mainnet.minepi.com';
 
     if (!seed || !destination || !amount || !memoText) {
         console.log(JSON.stringify({ success: false, error: 'Missing build arguments' }));
@@ -53,7 +53,7 @@ else if (mode === 'build') {
 
             const transaction = new StellarSdk.TransactionBuilder(sourceAccount, {
                 fee: '100', // Standard fee
-                networkPassphrase: 'Pi Testnet',
+                networkPassphrase: 'Pi Network',
             })
             .addOperation(StellarSdk.Operation.payment({
                 destination: destination,
@@ -79,13 +79,13 @@ else {
     // Original behavior for backward compatibility if no mode specified
     const seed = process.argv[2];
     const xdr = process.argv[3];
-    const horizonUrl = process.argv[4] || 'https://api.testnet.minepi.com';
+    const horizonUrl = process.argv[4] || 'https://api.mainnet.minepi.com';
     
     (async () => {
         try {
             const server = new StellarSdk.Server(horizonUrl, { allowHttp: true });
             const keypair = StellarSdk.Keypair.fromSecret(seed);
-            const transaction = new StellarSdk.Transaction(xdr, 'Pi Testnet');
+            const transaction = new StellarSdk.Transaction(xdr, 'Pi Network');
             transaction.sign(keypair);
             const result = await server.submitTransaction(transaction);
             console.log(JSON.stringify({ success: true, txid: result.hash }));

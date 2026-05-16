@@ -164,12 +164,7 @@ class AdminOrderController extends Controller
                     throw new \Exception("Gagal mendapatkan Alamat Wallet tujuan (Destination Address).");
                 }
 
-                $horizonUrl = "https://api.testnet.minepi.com"; // Default for testnet
-                // Try to find best node
-                $nodes = ['https://api.testnet.minepi.com', 'https://rpc.testnet.minepi.com'];
-                foreach($nodes as $n) {
-                    try { if(Http::withoutVerifying()->get($n)->successful()) { $horizonUrl = $n; break; } } catch(\Exception $e){}
-                }
+                $horizonUrl = config('services.pi.horizon_url');
 
                 $amountStr = number_format((float)$order->total_price, 7, '.', ''); // Stellar precision
                 
