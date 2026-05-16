@@ -15,6 +15,7 @@ const MENU_ITEMS = [
     { label: 'Wishlist',      link: route('wishlist.index'), icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z', color: 'bg-red-500' },
     { label: 'Cart',          link: route('cart.index'), icon: 'M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z', color: 'bg-shopee' },
     { label: 'Security',      link: route('profile.edit'), icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', color: 'bg-green-600' },
+    { label: 'Token History', link: route('tokens.index'), icon: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z', color: 'bg-amber-500' },
 ];
 
 export default function Dashboard({ auth, products, stats }) {
@@ -59,6 +60,35 @@ export default function Dashboard({ auth, products, stats }) {
                                 🔒 Unverified Visitor
                             </span>
                         )}
+                    </div>
+                </div>
+
+                {/* Bliyyan Token Balance Card */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="p-1 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600"></div>
+                    <div className="p-5 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500 shadow-inner">
+                                <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] leading-none mb-1.5">Bliyyan Token Balance</h4>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-2xl font-black text-gray-800 tracking-tighter">
+                                        {Number(auth.user.token_balance).toLocaleString('id-ID')}
+                                    </span>
+                                    <span className="text-xs font-bold text-amber-500 uppercase tracking-widest">BTK</span>
+                                </div>
+                            </div>
+                        </div>
+                        <Link 
+                            href={route('tokens.index')}
+                            className="bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl shadow-lg shadow-amber-500/20 transition-all active:scale-95"
+                        >
+                            History
+                        </Link>
                     </div>
                 </div>
 

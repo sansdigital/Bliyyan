@@ -23,6 +23,7 @@ class User extends Authenticatable
         'password',
         'is_admin',
         'pi_uid',
+        'token_balance',
     ];
 
     /**
@@ -45,7 +46,13 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'token_balance' => 'decimal:4',
         ];
+    }
+
+    public function tokenTransactions()
+    {
+        return $this->hasMany(BliyyanTokenTransaction::class);
     }
 
     public function cart()
