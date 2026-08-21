@@ -25,31 +25,32 @@ Route::get('/tokens', [\App\Http\Controllers\BliyyanTokenController::class, 'ind
 
 
 
+Route::get('/', function () {
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'products' => \App\Models\Product::with('category.categoryGroup')->where('is_active', true)->latest()->get(),
+        'categories' => \App\Models\Category::with(['categoryGroup'])->withCount(['products' => fn($q) => $q->where('is_active', true)])->get(),
+        'groups' => \App\Models\CategoryGroup::withCount('categories')->get(),
+        'wishlist_ids' => auth()->check() ? auth()->user()->wishlists()->pluck('product_id')->toArray() : [],
+    ]);
+});
+
+// Legal Pages
+Route::get('/kebijakan-privasi', function () {
+    return Inertia::render('PrivacyPolicy');
+})->name('privacy.policy');
+
+Route::get('/syarat-dan-ketentuan', function () {
+    return Inertia::render('TermsAndConditions');
+})->name('terms.conditions');
+
+Route::get('/product/{slug}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
+Route::get('/search', [\App\Http\Controllers\ProductController::class, 'search'])->name('products.search');
+Route::get('/category', fn() => redirect()->route('products.search'))->name('products.categories');
+Route::get('/category/{category:slug}', [\App\Http\Controllers\ProductController::class, 'byCategory'])->name('products.category');
+
 Route::middleware(['auth', 'check_address'])->group(function () {
-    Route::get('/', function () {
-        return Inertia::render('Welcome', [
-            'canLogin' => Route::has('login'),
-            'canRegister' => Route::has('register'),
-            'products' => \App\Models\Product::with('category.categoryGroup')->where('is_active', true)->latest()->get(),
-            'categories' => \App\Models\Category::with(['categoryGroup'])->withCount(['products' => fn($q) => $q->where('is_active', true)])->get(),
-            'groups' => \App\Models\CategoryGroup::withCount('categories')->get(),
-            'wishlist_ids' => auth()->check() ? auth()->user()->wishlists()->pluck('product_id')->toArray() : [],
-        ]);
-    });
-
-    // Legal Pages
-    Route::get('/kebijakan-privasi', function () {
-        return Inertia::render('PrivacyPolicy');
-    })->name('privacy.policy');
-
-    Route::get('/syarat-dan-ketentuan', function () {
-        return Inertia::render('TermsAndConditions');
-    })->name('terms.conditions');
-
-    Route::get('/product/{slug}', [\App\Http\Controllers\ProductController::class, 'show'])->name('products.show');
-    Route::get('/search', [\App\Http\Controllers\ProductController::class, 'search'])->name('products.search');
-    Route::get('/category', fn() => redirect()->route('products.search'))->name('products.categories');
-    Route::get('/category/{category:slug}', [\App\Http\Controllers\ProductController::class, 'byCategory'])->name('products.category');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
