@@ -91,9 +91,15 @@ export default function Welcome({ auth, products, categories, groups = [], wishl
                         <div className="flex items-center gap-4">
 
                             {auth.user ? (
-                                <></>
+                                <Link href={route('profile.edit')} className="flex items-center gap-1 opacity-90 hover:opacity-100 transition-opacity p-1">
+                                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-xs text-white uppercase">
+                                        {auth.user.name.charAt(0)}
+                                    </div>
+                                </Link>
                             ) : (
-                                <div className="hidden"></div>
+                                <div className="flex items-center gap-2">
+                                    <Link href={route('login')} className="text-xs font-bold hover:underline text-white">LOGIN</Link>
+                                </div>
                             )}
                             
                             <Link href={route('cart.index')} className="relative ml-1 text-white border-white/20 pl-2 py-1 hover:text-shopee-gold transition-colors group">
