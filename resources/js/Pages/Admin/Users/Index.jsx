@@ -101,6 +101,24 @@ export default function Index({ auth, users }) {
 
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
 
+    const getPageNumbers = () => {
+        const pages = [];
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            if (currentPage <= 4) {
+                pages.push(1, 2, 3, 4, 5, '...', totalPages);
+            } else if (currentPage >= totalPages - 3) {
+                pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+            } else {
+                pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+            }
+        }
+        return pages;
+    };
+
     return (
         <AdminLayout user={auth.user}>
             <Head title="Customer Management" />
@@ -261,18 +279,22 @@ export default function Index({ auth, users }) {
                     </button>
                     
                     <div className="flex items-center gap-1">
-                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                            <button
-                                key={page}
-                                onClick={() => setCurrentPage(page)}
-                                className={`w-9 h-9 rounded-xl text-[10px] font-black transition-all active:scale-90 ${
-                                    currentPage === page 
-                                    ? 'bg-shopee-gold text-slate-900 shadow-lg shadow-shopee-gold/20' 
-                                    : 'bg-white border border-gray-100 text-gray-400 hover:bg-slate-50'
-                                }`}
-                            >
-                                {page}
-                            </button>
+                        {getPageNumbers().map((page, index) => (
+                            page === '...' ? (
+                                <span key={`ellipsis-${index}`} className="px-2 text-gray-400 font-black">...</span>
+                            ) : (
+                                <button
+                                    key={`page-${page}`}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-9 h-9 rounded-xl text-[10px] font-black transition-all active:scale-90 ${
+                                        currentPage === page 
+                                        ? 'bg-shopee-gold text-slate-900 shadow-lg shadow-shopee-gold/20' 
+                                        : 'bg-white border border-gray-100 text-gray-400 hover:bg-slate-50'
+                                    }`}
+                                >
+                                    {page}
+                                </button>
+                            )
                         ))}
                     </div>
 
