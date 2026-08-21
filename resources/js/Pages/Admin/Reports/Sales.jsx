@@ -30,6 +30,9 @@ export default function Sales({ auth, orders }) {
     const [filterMonth, setFilterMonth] = useState('all');
     const [filterYear, setFilterYear] = useState('all');
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 8;
+
     const handlePrint = (order) => {
         const printWindow = window.open('', '_blank');
         const formattedAddress = (order.shipping_address || '-').replace(/\s*\(([^)]+)\)/, '\n$1');
@@ -135,6 +138,31 @@ export default function Sales({ auth, orders }) {
         }
         return result;
     }, [localOrders, searchQuery, filterDay, filterMonth, filterYear]);
+
+    const paginatedOrders = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredOrders.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredOrders, currentPage]);
+
+    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+    const getPageNumbers = () => {
+        const pages = [];
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            if (currentPage <= 4) {
+                pages.push(1, 2, 3, 4, 5, '...', totalPages);
+            } else if (currentPage >= totalPages - 3) {
+                pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
+            } else {
+                pages.push(1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages);
+            }
+        }
+        return pages;
+    };
 
     const handleExportExcel = () => {
         const rows = [];
@@ -268,7 +296,10 @@ export default function Sales({ auth, orders }) {
                                 type="text" 
                                 placeholder="Search by ID or Name..."
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
                                 className="w-full bg-slate-50 border-none rounded-xl py-2.5 pl-10 pr-4 text-sm font-medium focus:ring-2 focus:ring-shopee-gold/20 transition-all"
                             />
                         </div>
@@ -284,7 +315,7 @@ export default function Sales({ auth, orders }) {
                         <Calendar className="w-4 h-4 text-shopee-gold" />
                         <select 
                             value={filterDay}
-                            onChange={(e) => setFilterDay(e.target.value)}
+                            onChange={(e) => { setFilterDay(e.target.value); setCurrentPage(1); }}
                             className="bg-slate-50 border-none rounded-lg text-[10px] font-bold uppercase py-2 pl-3 pr-8"
                         >
                             <option value="all">Day</option>
@@ -294,7 +325,7 @@ export default function Sales({ auth, orders }) {
                         </select>
                         <select 
                             value={filterMonth}
-                            onChange={(e) => setFilterMonth(e.target.value)}
+                            onChange={(e) => { setFilterMonth(e.target.value); setCurrentPage(1); }}
                             className="bg-slate-50 border-none rounded-lg text-[10px] font-bold uppercase py-2 pl-3 pr-8"
                         >
                             <option value="all">Month</option>
@@ -304,7 +335,7 @@ export default function Sales({ auth, orders }) {
                         </select>
                         <select 
                             value={filterYear}
-                            onChange={(e) => setFilterYear(e.target.value)}
+                            onChange={(e) => { setFilterYear(e.target.value); setCurrentPage(1); }}
                             className="bg-slate-50 border-none rounded-lg text-[10px] font-bold uppercase py-2 pl-3 pr-8"
                         >
                             <option value="all">Year</option>
@@ -332,7 +363,7 @@ export default function Sales({ auth, orders }) {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
-                            {filteredOrders.length === 0 ? (
+                            {paginatedOrders.length === 0 ? (
                                 <tr>
                                     <td colSpan={6} className="py-20 text-center">
                                         <Package className="w-12 h-12 text-gray-200 mx-auto mb-4" />
@@ -340,7 +371,7 @@ export default function Sales({ auth, orders }) {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredOrders.map((order) => (
+                                paginatedOrders.map((order) => (
                                     <tr key={order.id} className="hover:bg-slate-50/50 transition-colors group">
                                         <td className="px-6 py-4">
                                             <span className="text-xs font-black text-slate-800">#{String(order.id).padStart(4, '0')}</span>
@@ -385,13 +416,47 @@ export default function Sales({ auth, orders }) {
                 </div>
             </div>
 
-            {/* Simulated Pagination */}
-            <div className="flex items-center justify-between mt-8">
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Showing {filteredOrders.length} records</p>
+            {/* Pagination */}
+            <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4 px-2 mb-6">
+                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                    Showing {paginatedOrders.length} of {filteredOrders.length} records
+                </div>
                 <div className="flex items-center gap-2">
-                    <button className="w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-gray-50 transition-all"><ChevronLeft className="w-4 h-4" /></button>
-                    <button className="w-8 h-8 rounded-full bg-blue-500 text-white font-black text-xs">1</button>
-                    <button className="w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-gray-50 transition-all"><ChevronRight className="w-4 h-4" /></button>
+                    <button 
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="p-2 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-shopee-gold disabled:opacity-30 transition-all active:scale-90"
+                    >
+                        <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    
+                    <div className="flex items-center gap-1">
+                        {getPageNumbers().map((page, index) => (
+                            page === '...' ? (
+                                <span key={`ellipsis-${index}`} className="px-2 text-gray-400 font-black">...</span>
+                            ) : (
+                                <button
+                                    key={`page-${page}`}
+                                    onClick={() => setCurrentPage(page)}
+                                    className={`w-9 h-9 rounded-xl text-[10px] font-black transition-all active:scale-90 ${
+                                        currentPage === page 
+                                        ? 'bg-shopee-gold text-slate-900 shadow-lg shadow-shopee-gold/20' 
+                                        : 'bg-white border border-gray-100 text-gray-400 hover:bg-slate-50'
+                                    }`}
+                                >
+                                    {page}
+                                </button>
+                            )
+                        ))}
+                    </div>
+
+                    <button 
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className="p-2 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-shopee-gold disabled:opacity-30 transition-all active:scale-90"
+                    >
+                        <ChevronRight className="w-5 h-5" />
+                    </button>
                 </div>
             </div>
 
