@@ -38,11 +38,11 @@ export default function Login({ status, canResetPassword }) {
                 username: auth.user.username,
                 accessToken: auth.accessToken
             }, { withCredentials: true }).then(response => {
-                // Show alert for visual confirmation on mobile
-                alert("Login Successful! Redirecting to Bliyyan Dashboard...");
-                
-                // Use a direct hard reload to ensure session is picked up
-                window.location.assign(route('dashboard'));
+                // Remove native alert to prevent iOS Pi Browser freezing
+                // Delay redirect slightly to ensure iOS Safari persists the Set-Cookie header
+                setTimeout(() => {
+                    window.location.href = route('dashboard');
+                }, 500);
             }).catch(err => {
                 console.error("Backend auth error:", err);
                 const backendError = err.response?.data?.error;
