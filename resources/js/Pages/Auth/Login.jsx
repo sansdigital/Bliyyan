@@ -24,7 +24,6 @@ export default function Login({ status, canResetPassword }) {
             const scopes = ['username', 'payments', 'wallet_address'];
             const onIncompletePaymentFound = (payment) => {
                 console.log("Incomplete payment found:", payment);
-                // Optional: You can handle incomplete payments here if needed
                 axios.post(route('pi.approve'), { paymentId: payment.identifier });
             };
 
@@ -32,24 +31,29 @@ export default function Login({ status, canResetPassword }) {
             const auth = await window.Pi.authenticate(scopes, onIncompletePaymentFound);
             console.log("Pi Auth Success:", auth.user.uid);
             
-            // Send auth data to our backend
-            axios.post(route('pi.auth'), {
+            // iOS WebKit Fix: Use a real HTML form POST instead of axios/AJAX.
+            // This triggers a full-page navigation, which forces iOS Safari/WebView
+            // to correctly accept and store the session cookie from the server's redirect.
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = route('pi.auth');
+
+            const fields = {
                 uid: auth.user.uid,
-                username: auth.user.username,
-                accessToken: auth.accessToken
-            }, { withCredentials: true }).then(response => {
-                // Remove native alert to prevent iOS Pi Browser freezing
-                // Delay redirect slightly to ensure iOS Safari persists the Set-Cookie header
-                setTimeout(() => {
-                    window.location.href = route('dashboard');
-                }, 500);
-            }).catch(err => {
-                console.error("Backend auth error:", err);
-                const backendError = err.response?.data?.error;
-                const msg = backendError || "Failed to connect to Bliyyan server. Please check your internet connection and try again.";
-                setPiAuthError(msg);
-                setIsAuthenticatingPi(false);
+                username: auth.user.username || '',
+                accessToken: auth.accessToken,
+            };
+
+            Object.entries(fields).forEach(([name, value]) => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = name;
+                input.value = value;
+                form.appendChild(input);
             });
+
+            document.body.appendChild(form);
+            form.submit();
 
         } catch (error) {
             console.error(error);

@@ -75,17 +75,14 @@ class PiAuthController extends Controller
                     Auth::login($user, true);
                     
                     // CRITICAL: Force session to save before redirecting!
-                    session()->regenerate();
-                    session()->save();
+                    $request->session()->regenerate();
+                    $request->session()->save();
                     
                     Log::info("Pi Auth: Auth::login SUCCESS and Session saved!");
 
-
-                    return response()->json([
-                        'message' => 'Authenticated successfully',
-                        'user' => $user,
-                        'redirect' => route('dashboard')
-                    ]);
+                    // Use a real HTTP redirect so iOS WebView correctly sets the session cookie.
+                    // JSON + JS redirect does NOT reliably persist cookies in iOS Safari/WebView.
+                    return redirect()->intended(route('dashboard'));
                 } catch (\Exception $dbEx) {
                     Log::error("Pi Auth DB/Login Error: " . $dbEx->getMessage());
                     return response()->json(['error' => 'Database/Login Error: ' . $dbEx->getMessage()], 500);
