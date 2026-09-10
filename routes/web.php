@@ -21,8 +21,6 @@ Route::middleware(['web', \Illuminate\Http\Middleware\SetCacheHeaders::class . '
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth'])->name('dashboard');
 
-Route::get('/tokens', [\App\Http\Controllers\BliyyanTokenController::class, 'index'])
-    ->middleware(['auth', 'verified'])->name('tokens.index');
 
 
 
