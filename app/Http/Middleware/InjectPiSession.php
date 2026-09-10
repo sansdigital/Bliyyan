@@ -39,7 +39,8 @@ class InjectPiSession
         if ($token) {
             // Laravel uses a MAC prefix for cookie values to prevent tampering.
             // We use Laravel's built-in class to generate this prefix automatically.
-            $prefix = \Illuminate\Cookie\CookieValuePrefix::create($sessionCookieName, config('app.key'));
+            // We must use the decoded binary key from the encrypter, not the raw config string.
+            $prefix = \Illuminate\Cookie\CookieValuePrefix::create($sessionCookieName, app('encrypter')->getKey());
             $encryptedToken = \Illuminate\Support\Facades\Crypt::encryptString($prefix . $token);
             
             $request->cookies->set($sessionCookieName, $encryptedToken);
