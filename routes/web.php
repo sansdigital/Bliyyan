@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\PiAuthController;
 
 Route::middleware('web')->group(function () {
     Route::post('/auth/pi', [PiAuthController::class, 'authenticate'])->name('pi.auth');
+    Route::get('/auth/pi/callback', [PiAuthController::class, 'callback'])->name('pi.callback');
 });
 
 
