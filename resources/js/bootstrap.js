@@ -9,3 +9,8 @@ if (piSession) {
     window.axios.defaults.headers.common['X-Pi-Session'] = piSession;
 }
 
+const csrfToken = document.head.querySelector('meta[name="csrf-token"]');
+if (csrfToken) {
+    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken.content;
+}
+
