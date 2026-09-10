@@ -2,9 +2,24 @@ import '../css/app.css';
 import './bootstrap';
 import './i18n';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
+
+router.on('before', (event) => {
+    const piSession = localStorage.getItem('pi_session');
+    if (piSession) {
+        event.detail.visit.headers = event.detail.visit.headers || {};
+        event.detail.visit.headers['X-Pi-Session'] = piSession;
+    }
+    
+    const csrfToken = document.head.querySelector('meta[name="csrf-token"]');
+    if (csrfToken) {
+        event.detail.visit.headers = event.detail.visit.headers || {};
+        event.detail.visit.headers['X-CSRF-TOKEN'] = csrfToken.content;
+    }
+});
+
 
 const appName = import.meta.env.VITE_APP_NAME || 'Bliyyan';
 
