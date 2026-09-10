@@ -73,16 +73,33 @@ class PiAuthController extends Controller
                     // Log the user in
                     Log::info("Pi Auth: Attempting Auth::login for UID: " . $uid);
                     Auth::login($user, true);
-                    
+
                     // CRITICAL: Force session to save before redirecting!
-                    $request->session()->regenerate();
+                    // Do NOT call regenerate() — this changes the session ID mid-flight
+                    // which causes iOS to discard the old cookie before the new one is stored.
                     $request->session()->save();
-                    
+
                     Log::info("Pi Auth: Auth::login SUCCESS and Session saved!");
 
-                    // Use a real HTTP redirect so iOS WebView correctly sets the session cookie.
-                    // JSON + JS redirect does NOT reliably persist cookies in iOS Safari/WebView.
-                    return redirect()->intended(route('dashboard'));
+                    // iOS ITP Fix: Return an HTML 200 page with JS redirect instead of
+                    // a 302 redirect. iOS WebKit stores cookies from a full HTML response
+                    // much more reliably than from a redirect header.
+                    $dashboardUrl = route('dashboard');
+                    return response(
+                        "<!DOCTYPE html>
+<html>
+<head><meta charset='utf-8'><meta name='viewport' content='width=device-width, initial-scale=1'></head>
+<body style='background:#111;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0'>
+    <div style='text-align:center'>
+        <p style='font-size:16px;opacity:0.8'>Masuk ke Dashboard...</p>
+    </div>
+    <script>
+        // Small delay to ensure iOS WebKit has fully committed the session cookie
+        setTimeout(function() { window.location.replace('$dashboardUrl'); }, 300);
+    </script>
+</body>
+</html>"
+                    )->header('Content-Type', 'text/html; charset=utf-8');
                 } catch (\Exception $dbEx) {
                     Log::error("Pi Auth DB/Login Error: " . $dbEx->getMessage());
                     return response()->json(['error' => 'Database/Login Error: ' . $dbEx->getMessage()], 500);
