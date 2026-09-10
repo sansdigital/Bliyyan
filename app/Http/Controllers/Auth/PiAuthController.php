@@ -127,14 +127,6 @@ class PiAuthController extends Controller
 
     /**
      * Consume the one-time login token (GET request — iOS-safe).
-     *
-     * THE KEY FIX: Instead of redirecting to /dashboard (which causes iOS to
-     * lose the session cookie on the navigation), we render the dashboard
-     * content DIRECTLY from this callback URL.
-     *
-     * No navigation = no cookie-drop problem.
-     * The user is already ON the dashboard page. Inertia SPA handles
-     * all subsequent navigation correctly with the established session.
      */
     public function callback(Request $request)
     {
@@ -172,20 +164,44 @@ class PiAuthController extends Controller
         Auth::login($user, true);
         $request->session()->save();
 
-        Log::info("Pi Callback: User {$user->id} logged in. Rendering dashboard directly.");
+        Log::info("Pi Callback: User {$user->id} logged in. Showing continue button.");
 
-        // *** THE REAL FIX ***
-        // Instead of redirecting to /dashboard (which causes iOS to drop the cookie
-        // on the navigation), render the Dashboard Inertia page directly HERE.
-        //
-        // The user is now ON the dashboard — no cookie needs to survive a navigation.
-        // The session cookie is set in THIS response, and since there's no further
-        // navigation, iOS has no chance to drop it.
-        //
-        // Inertia SPA takes over for all subsequent navigation (back button, links, etc.)
-        // and sends the session cookie correctly because the page is already loaded.
-        $dashboardController = app(\App\Http\Controllers\DashboardController::class);
-        return $dashboardController->index($request);
+        // *** THE FOOLPROOF IOS ITP FIX ***
+        // Instead of automatically redirecting or rendering directly, we show a button.
+        // Apple's Intelligent Tracking Prevention (ITP) drops cookies on automatic
+        // redirects following a cross-origin interaction (the Pi dialog).
+        // However, ITP ALWAYS preserves cookies on explicit USER-INITIATED clicks.
+        $dashboardUrl = route('dashboard');
+        
+        return response("
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Login Berhasil</title>
+    <style>
+        body { background:#111; color:#fff; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; margin:0; }
+        .btn { display:inline-flex; align-items:center; gap:8px; padding:16px 32px; background:linear-gradient(135deg, #f53d2d, #ff6b5c); color:#fff; text-decoration:none; font-weight:800; border-radius:12px; font-size:18px; box-shadow:0 8px 25px rgba(245,61,45,0.4); transition:all 0.2s; letter-spacing:0.5px; }
+        .btn:active { transform:scale(0.95); box-shadow:0 4px 15px rgba(245,61,45,0.3); }
+        .icon { width:24px; height:24px; }
+    </style>
+</head>
+<body>
+    <div style='text-align:center; padding:20px;'>
+        <div style='background:#22c55e; color:#fff; width:64px; height:64px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; box-shadow:0 4px 20px rgba(34,197,94,0.4);'>
+            <svg class='icon' fill='none' stroke='currentColor' viewBox='0 0 24 24' stroke-width='3'><path stroke-linecap='round' stroke-linejoin='round' d='M5 13l4 4L19 7'></path></svg>
+        </div>
+        <h2 style='margin:0 0 10px; font-size:24px;'>Login Berhasil!</h2>
+        <p style='opacity:0.7; margin:0 0 35px; font-size:15px;'>Sesi Anda telah diamankan.</p>
+        <a href='" . e($dashboardUrl) . "' class='btn'>
+            Lanjutkan ke Dashboard
+            <svg class='icon' fill='none' stroke='currentColor' viewBox='0 0 24 24' stroke-width='2.5'><path stroke-linecap='round' stroke-linejoin='round' d='M14 5l7 7m0 0l-7 7m7-7H3'></path></svg>
+        </a>
+    </div>
+</body>
+</html>
+        ")->header('Content-Type', 'text/html; charset=utf-8');
     }
 
     /**
