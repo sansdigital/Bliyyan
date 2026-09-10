@@ -154,15 +154,17 @@ class PiAuthController extends Controller
         }
 
         // Log the user in.
-        // We use a 200 OK response with a JavaScript redirect instead of a 302 HTTP redirect.
-        // iOS Safari (WebKit) often ignores Set-Cookie headers on 302 redirects during auth flows.
+        // Even if we use a JS redirect, iOS Pi Browser might completely block the cookie.
+        // To circumvent this, we get the generated session ID and save it to localStorage
+        // and pass it in the query string so the InjectPiSession middleware can restore it.
         Auth::login($user, true);
         $request->session()->regenerate();
         $request->session()->save();
+        $sessionId = $request->session()->getId();
 
         Log::info("Pi Confirm: User {$user->id} logged in successfully via manual click. Using JS redirect to dashboard.");
 
-        $dashboardUrl = route('dashboard');
+        $dashboardUrl = route('dashboard') . '?pi_session=' . $sessionId;
 
         return response(
             "<!DOCTYPE html>
@@ -179,8 +181,9 @@ class PiAuthController extends Controller
     </div>
     <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
     <script>
+        localStorage.setItem('pi_session', '" . e($sessionId) . "');
         setTimeout(function() {
-            window.location.replace('" . e($dashboardUrl) . "');
+            window.location.replace('" . $dashboardUrl . "');
         }, 500);
     </script>
 </body>

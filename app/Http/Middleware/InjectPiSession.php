@@ -1,0 +1,44 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Log;
+
+class InjectPiSession
+{
+    /**
+     * Handle an incoming request.
+     *
+     * iOS Safari/WKWebView aggressively blocks all cookies in third-party or iframe contexts
+     * (which is how Pi Browser often runs apps). To circumvent this, we allow passing the session ID
+     * via the query string (for initial page loads) or an X-Pi-Session header (for AJAX/Inertia requests).
+     * This middleware intercepts those and injects them into the request's cookies BEFORE
+     * Laravel's StartSession middleware runs.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    public function handle(Request $request, Closure $next): Response
+    {
+        $sessionCookieName = config('session.cookie');
+        
+        // 1. Try to get it from the custom header (used by Axios/Inertia)
+        $token = $request->header('X-Pi-Session');
+        
+        // 2. If not in header, try query string (used for initial redirects/reloads)
+        if (!$token) {
+            $token = $request->query('pi_session');
+        }
+        
+        // 3. Inject it into the cookies bag so StartSession picks it up
+        if ($token) {
+            $request->cookies->set($sessionCookieName, $token);
+        }
+
+        $response = $next($request);
+
+        return $response;
+    }
+}
