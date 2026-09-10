@@ -128,9 +128,13 @@ class PiAuthController extends Controller
     /**
      * Consume the one-time login token (GET request — iOS-safe).
      *
-     * Returns a 200 HTML page (NOT a 302 redirect) so iOS WKWebView properly
-     * stores the session cookie before navigating to the dashboard.
-     * A 302 redirect races against iOS cookie storage and often loses.
+     * THE KEY FIX: Instead of redirecting to /dashboard (which causes iOS to
+     * lose the session cookie on the navigation), we render the dashboard
+     * content DIRECTLY from this callback URL.
+     *
+     * No navigation = no cookie-drop problem.
+     * The user is already ON the dashboard page. Inertia SPA handles
+     * all subsequent navigation correctly with the established session.
      */
     public function callback(Request $request)
     {
@@ -139,8 +143,7 @@ class PiAuthController extends Controller
         $userId   = $token ? Cache::get($cacheKey) : null;
 
         if (!$userId) {
-            Log::warning("Pi Callback: Invalid or expired token. Token prefix: " . substr($token, 0, 8));
-            // Show visible error message (not a silent redirect) so user/developer can debug
+            Log::warning("Pi Callback: Invalid or expired token. Prefix: " . substr($token, 0, 8));
             return response(
                 "<!DOCTYPE html>
 <html>
@@ -148,7 +151,7 @@ class PiAuthController extends Controller
 <body style='background:#111;color:#f87171;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:20px'>
     <div>
         <h2>Token Tidak Ditemukan</h2>
-        <p style='opacity:0.7'>Sesi login habis atau tidak valid.<br>Silakan login ulang.</p>
+        <p style='opacity:0.7'>Sesi login habis atau tidak valid. Silakan login ulang.</p>
         <p style='opacity:0.4;font-size:12px;margin-top:20px'>Kembali ke login dalam 3 detik...</p>
     </div>
     <script>setTimeout(function(){ window.location.replace('/login'); }, 3000);</script>
@@ -157,46 +160,32 @@ class PiAuthController extends Controller
             )->header('Content-Type', 'text/html; charset=utf-8');
         }
 
-        // Consume the token immediately (one-time use)
         Cache::forget($cacheKey);
 
         $user = User::find($userId);
-
         if (!$user) {
             Log::error("Pi Callback: User ID $userId not found.");
             return $this->errorHtml('User Tidak Ditemukan', 'Akun tidak ditemukan. Hubungi admin.');
         }
 
-        // Auth::login on a clean GET request — iOS WKWebView will accept this cookie.
+        // Log in the user. This is a clean GET request so iOS accepts the cookie.
         Auth::login($user, true);
-        $request->session()->save(); // Save WITHOUT regenerate to keep the same session ID
+        $request->session()->save();
 
-        Log::info("Pi Callback: User {$user->id} logged in successfully.");
+        Log::info("Pi Callback: User {$user->id} logged in. Rendering dashboard directly.");
 
-        // Return 200 HTML (NOT a 302 redirect!) with a 1-second delay.
-        // This gives iOS WKWebView time to fully commit the session cookie
-        // before window.location.replace() triggers the navigation to dashboard.
-        $dashboardUrl = route('dashboard');
-        return response(
-            "<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <meta http-equiv='refresh' content='1; url=" . e($dashboardUrl) . "'>
-</head>
-<body style='background:#111;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0'>
-    <div style='text-align:center'>
-        <p style='font-size:16px;opacity:0.8'>Berhasil! Membuka Dashboard...</p>
-    </div>
-    <script>
-        setTimeout(function() {
-            window.location.replace(" . json_encode($dashboardUrl) . ");
-        }, 1000);
-    </script>
-</body>
-</html>"
-        )->header('Content-Type', 'text/html; charset=utf-8');
+        // *** THE REAL FIX ***
+        // Instead of redirecting to /dashboard (which causes iOS to drop the cookie
+        // on the navigation), render the Dashboard Inertia page directly HERE.
+        //
+        // The user is now ON the dashboard — no cookie needs to survive a navigation.
+        // The session cookie is set in THIS response, and since there's no further
+        // navigation, iOS has no chance to drop it.
+        //
+        // Inertia SPA takes over for all subsequent navigation (back button, links, etc.)
+        // and sends the session cookie correctly because the page is already loaded.
+        $dashboardController = app(\App\Http\Controllers\DashboardController::class);
+        return $dashboardController->index($request);
     }
 
     /**
