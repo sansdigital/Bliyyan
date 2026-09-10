@@ -154,15 +154,38 @@ class PiAuthController extends Controller
         }
 
         // Log the user in.
-        // Because the request that called this method was initiated by a manual click,
-        // the Set-Cookie header that Laravel adds to this response will be accepted by iOS.
+        // We use a 200 OK response with a JavaScript redirect instead of a 302 HTTP redirect.
+        // iOS Safari (WebKit) often ignores Set-Cookie headers on 302 redirects during auth flows.
         Auth::login($user, true);
         $request->session()->regenerate();
         $request->session()->save();
 
-        Log::info("Pi Confirm: User {$user->id} logged in successfully via manual click. Redirecting to dashboard.");
+        Log::info("Pi Confirm: User {$user->id} logged in successfully via manual click. Using JS redirect to dashboard.");
 
-        return redirect()->intended(route('dashboard'));
+        $dashboardUrl = route('dashboard');
+
+        return response(
+            "<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <title>Mengalihkan...</title>
+</head>
+<body style='background:#111;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif;'>
+    <div style='text-align:center;'>
+        <div style='width:40px;height:40px;border:4px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 20px;'></div>
+        <h3 style='opacity:0.8'>Memuat Dashboard...</h3>
+    </div>
+    <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+    <script>
+        setTimeout(function() {
+            window.location.replace('" . e($dashboardUrl) . "');
+        }, 500);
+    </script>
+</body>
+</html>"
+        )->header('Content-Type', 'text/html; charset=utf-8');
     }
 
     private function errorHtml(string $title, string $message): \Illuminate\Http\Response
