@@ -32,9 +32,17 @@ class InjectPiSession
             $token = $request->query('pi_session');
         }
         
-        // 3. Inject it into the cookies bag so StartSession picks it up
+        // 3. Inject it into the cookies bag so StartSession picks it up.
+        // CRITICAL: Laravel encrypts all cookies. If we inject a raw token BEFORE EncryptCookies runs,
+        // EncryptCookies will fail to decrypt it and destroy it (which broke Android).
+        // We must manually add Laravel's cookie prefix and encrypt it so it survives!
         if ($token) {
-            $request->cookies->set($sessionCookieName, $token);
+            // Laravel uses a MAC prefix for cookie values to prevent tampering.
+            // We use Laravel's built-in class to generate this prefix automatically.
+            $prefix = \Illuminate\Cookie\CookieValuePrefix::create($sessionCookieName, config('app.key'));
+            $encryptedToken = \Illuminate\Support\Facades\Crypt::encryptString($prefix . $token);
+            
+            $request->cookies->set($sessionCookieName, $encryptedToken);
         }
 
         $response = $next($request);
