@@ -20,10 +20,13 @@ jobs:
     - name: 📦 Install PHP Dependencies
       run: composer install --no-dev --optimize-autoloader
 
-    - name: 📦 Install JS Dependencies & Build
+    - name: Install JS Dependencies & Build
       run: |
         npm install
         npm run build
+
+    - name: Ensure public/build is uploaded by FTP
+      run: sed -i '/public\/build/d' .gitignore
 
     - name: 📂 Sync Files to Hostinger via FTP
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
