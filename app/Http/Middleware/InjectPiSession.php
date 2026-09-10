@@ -27,9 +27,14 @@ class InjectPiSession
         // 1. Try to get it from the custom header (used by Axios/Inertia)
         $token = $request->header('X-Pi-Session');
         
-        // 2. If not in header, try query string (used for initial redirects/reloads)
+        // 2. If not in header, try Bearer token (more reliable against header stripping)
         if (!$token) {
-            $token = $request->query('pi_session');
+            $token = $request->bearerToken();
+        }
+        
+        // 3. If not in Bearer token, try request body or query string (Inertia sometimes sends in body)
+        if (!$token) {
+            $token = $request->input('pi_session') ?? $request->query('pi_session');
         }
         
         // 3. Inject it into the cookies bag so StartSession picks it up.

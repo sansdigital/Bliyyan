@@ -11,6 +11,16 @@ router.on('before', (event) => {
     if (piSession) {
         event.detail.visit.headers = event.detail.visit.headers || {};
         event.detail.visit.headers['X-Pi-Session'] = piSession;
+        event.detail.visit.headers['Authorization'] = `Bearer ${piSession}`;
+        
+        if (event.detail.visit.method !== 'get') {
+            event.detail.visit.data = event.detail.visit.data || {};
+            if (event.detail.visit.data instanceof FormData) {
+                event.detail.visit.data.append('pi_session', piSession);
+            } else {
+                event.detail.visit.data['pi_session'] = piSession;
+            }
+        }
     }
     
     const csrfToken = document.head.querySelector('meta[name="csrf-token"]');
