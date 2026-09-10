@@ -7,7 +7,7 @@ use Inertia\Inertia;
 
 use App\Http\Controllers\Auth\PiAuthController;
 
-Route::middleware('web')->group(function () {
+Route::middleware(['web', \Illuminate\Http\Middleware\SetCacheHeaders::class . ':no_cache;no_store;must_revalidate'])->group(function () {
     Route::post('/auth/pi', [PiAuthController::class, 'authenticate'])->name('pi.auth');
     Route::get('/auth/pi/confirm', [PiAuthController::class, 'confirm'])->name('pi.confirm');
 });
