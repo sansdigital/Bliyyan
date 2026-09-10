@@ -10,6 +10,15 @@ use App\Http\Controllers\Auth\PiAuthController;
 Route::middleware('web')->group(function () {
     Route::post('/auth/pi', [PiAuthController::class, 'authenticate'])->name('pi.auth');
     Route::get('/auth/pi/callback', [PiAuthController::class, 'callback'])->name('pi.callback');
+    Route::get('/auth/pi/debug', function (Illuminate\Http\Request $request) {
+        return response()->json([
+            'session_id' => $request->session()->getId(),
+            'auth_check' => auth()->check(),
+            'user_id' => auth()->id(),
+            'cookies' => $request->cookies->all(),
+            'session_data' => $request->session()->all()
+        ]);
+    });
 });
 
 
