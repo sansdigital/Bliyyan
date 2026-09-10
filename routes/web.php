@@ -19,7 +19,7 @@ Route::middleware('web')->group(function () {
 
 
 Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])->name('dashboard');
+    ->middleware(['auth'])->name('dashboard');
 
 Route::get('/tokens', [\App\Http\Controllers\BliyyanTokenController::class, 'index'])
     ->middleware(['auth', 'verified'])->name('tokens.index');
