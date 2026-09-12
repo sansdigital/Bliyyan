@@ -121,6 +121,9 @@ class AdminProductController extends Controller
             
             Storage::disk('public')->put($path, (string) $image->toWebp(85));
             $validated['image'] = $path;
+        } else {
+            // No new image uploaded — keep the existing one.
+            unset($validated['image']);
         }
 
         $product->update($validated);
