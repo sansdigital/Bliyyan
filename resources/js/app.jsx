@@ -12,21 +12,24 @@ router.on('before', (event) => {
         event.detail.visit.headers = event.detail.visit.headers || {};
         event.detail.visit.headers['X-Pi-Session'] = piSession;
         event.detail.visit.headers['Authorization'] = `Bearer ${piSession}`;
-        
-        if (event.detail.visit.method !== 'get') {
-            event.detail.visit.data = event.detail.visit.data || {};
-            if (event.detail.visit.data instanceof FormData) {
-                event.detail.visit.data.append('pi_session', piSession);
-            } else {
-                event.detail.visit.data['pi_session'] = piSession;
-            }
-        }
     }
     
-    const csrfToken = document.head.querySelector('meta[name="csrf-token"]');
-    if (csrfToken) {
+    // Always refresh CSRF token from the meta tag on each request.
+    // This prevents stale token issues after session regeneration.
+    const csrfMeta = document.head.querySelector('meta[name="csrf-token"]');
+    if (csrfMeta) {
         event.detail.visit.headers = event.detail.visit.headers || {};
-        event.detail.visit.headers['X-CSRF-TOKEN'] = csrfToken.content;
+        event.detail.visit.headers['X-CSRF-TOKEN'] = csrfMeta.content;
+    }
+});
+
+// After each successful Inertia navigation, update the CSRF meta tag
+// with the fresh token from the server so subsequent requests don't get 419.
+router.on('success', (event) => {
+    const newToken = event.detail.page?.props?.csrf_token;
+    if (newToken) {
+        const meta = document.head.querySelector('meta[name="csrf-token"]');
+        if (meta) meta.setAttribute('content', newToken);
     }
 });
 

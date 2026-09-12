@@ -40,6 +40,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'stuck_payment_id' => $request->session()->get('stuck_payment_id'),
             'cart_count' => $request->user() && $request->user()->cart ? $request->user()->cart->items()->sum('quantity') : 0,
+            'csrf_token' => csrf_token(),
         ];
     }
 }
