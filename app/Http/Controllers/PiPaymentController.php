@@ -83,9 +83,6 @@ class PiPaymentController extends Controller
                             Log::info("Satpam Logic: Updating Order #{$order->id} to paid via complete()");
                             $order->update(['status' => 'paid']);
 
-                            // Award Bliyyan Tokens
-                            \App\Http\Controllers\BliyyanTokenController::awardTokenForPurchase($order);
-
                             foreach ($order->items as $item) {
                                 $product = $item->product;
                                 if ($product) {
@@ -101,9 +98,6 @@ class PiPaymentController extends Controller
                             if ($order && !in_array($order->status, ['refunded', 'cancelled'])) {
                                 Log::info("Satpam Logic: Fallback updating Order #{$order->id} to paid");
                                 $order->update(['status' => 'paid']);
-
-                                // Award Bliyyan Tokens
-                                \App\Http\Controllers\BliyyanTokenController::awardTokenForPurchase($order);
 
                                 Payment::create([
                                     'order_id'      => $order->id,
